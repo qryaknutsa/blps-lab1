@@ -1,31 +1,30 @@
 package com.example.blpslab1.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.math.BigInteger;
 
 
-
-@Entity
-@Table(name = "my_user")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Document
 public class User {
     @Id
-    @Column(name = "id", nullable = false)
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
-    @Column(name = "username", nullable = false)
+    private String id;
+    @Indexed(unique = true)
     private String username;
-    @Column(name = "password", nullable = false)
     private String password;
-    @Column(name = "subscription", nullable = false)
     private Boolean subscription;
+
+    public User(String username, String password, Boolean subscription){
+        this.username = username;
+        this.password = password;
+        this.subscription = subscription;
+    }
     
     
 }

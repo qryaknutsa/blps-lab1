@@ -1,8 +1,11 @@
 package com.example.blpslab1.repo;
 
 import com.example.blpslab1.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface UserRepo extends JpaRepository<User, Long>{
-    User findById(long id);
+import java.util.Optional;
+
+public interface UserRepo extends MongoRepository<User, String> {
+
+
 }
