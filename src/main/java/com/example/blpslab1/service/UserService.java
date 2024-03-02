@@ -1,6 +1,8 @@
 package com.example.blpslab1.service;
 
+import com.example.blpslab1.model.Session;
 import com.example.blpslab1.model.User;
+import com.example.blpslab1.repo.SessionRepo;
 import com.example.blpslab1.repo.UserRepo;
 
 
@@ -16,10 +18,12 @@ import static com.example.blpslab1.service.ResponseStatus.*;
 @Service
 public class UserService {
     private final UserRepo userRepo;
+    private final SessionRepo sessionRepo;
     private final MessageDigest md = MessageDigest.getInstance("SHA-512");
 
-    public UserService(UserRepo userRepo) throws NoSuchAlgorithmException {
+    public UserService(UserRepo userRepo, SessionRepo sessionRepo) throws NoSuchAlgorithmException {
         this.userRepo = userRepo;
+        this.sessionRepo = sessionRepo;
     }
 
     public List<User> getAllUsers(){
@@ -33,14 +37,15 @@ public class UserService {
         try {
             realUser = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(reqUser.getUsername())).findFirst().get();
             String reqPass = encryptPassword(reqUser.getPassword());
-            if (realUser.getPassword().equals(reqPass)) return GOOD;
+            if (realUser.getPassword().equals(reqPass)) {
+                sessionRepo.save(new Session(reqUser.getUsername()));
+                return GOOD;
+            }
             else return WRONG_PASSWORD;
         } catch (NoSuchElementException e) {
             return NOT_FOUND;
         }
     }
-
-
 
 
     public ResponseStatus signUp(User user) {
@@ -62,7 +67,7 @@ public class UserService {
         }
     }
 
-    public ResponseStatus delete( String username){
+    public ResponseStatus delete(String username){
         User user;
         try {
             user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
@@ -90,8 +95,8 @@ public class UserService {
         byte[] byteBuffer = md.digest();
         StringBuilder strHexString = new StringBuilder();
 
-        for (int i = 0; i < byteBuffer.length; i++) {
-            String hex = Integer.toHexString(0xff & byteBuffer[i]);
+        for (byte b : byteBuffer) {
+            String hex = Integer.toHexString(0xff & b);
             if (hex.length() == 1) {
                 strHexString.append('0');
             }
@@ -99,6 +104,5 @@ public class UserService {
         }
         return strHexString.toString();
     }
-
 
 }
