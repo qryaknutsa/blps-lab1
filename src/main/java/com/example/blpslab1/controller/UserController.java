@@ -31,7 +31,7 @@ public class UserController {
         return ResponseEntity.ok().body(userService.getAllUsers());
     }
 
-    @PostMapping("signin/")
+    @PostMapping("/signin")
     public ResponseEntity<Void> signIn(@RequestBody User user) {
         ResponseStatus response = userService.signIn(user);
         if (response == GOOD)
@@ -43,7 +43,7 @@ public class UserController {
     }
 
 
-    @PostMapping("signup/")
+    @PostMapping("/signup")
     public ResponseEntity<Void> signUp(@RequestBody User user) {
         ResponseStatus response = userService.signUp(user);
         if (response == GOOD)
@@ -74,6 +74,13 @@ public class UserController {
         if (response == GOOD)
             return ResponseEntity.ok().build();
         else return ResponseEntity.internalServerError().build();
+    }
+
+
+    @GetMapping("/exit")
+    public ResponseEntity<User> exit() {
+        userService.exit();
+        return ResponseEntity.ok().build();
     }
 
 }

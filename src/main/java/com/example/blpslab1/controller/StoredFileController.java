@@ -2,10 +2,8 @@ package com.example.blpslab1.controller;
 
 import com.example.blpslab1.model.FilePath;
 import com.example.blpslab1.model.StoredFile;
-import com.example.blpslab1.model.User;
 import com.example.blpslab1.service.ResponseStatus;
 import com.example.blpslab1.service.StoredFileService;
-import com.example.blpslab1.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,17 +24,18 @@ public class StoredFileController {
         return ResponseEntity.ok().body(storedFileService.getAllFilesName());
     }
 
-    @PostMapping("upload/")
-    public ResponseEntity<Void> signUp(@RequestBody FilePath filePath) throws IOException {
-        System.out.println(filePath.getFilePath());
+    @PostMapping("/upload")
+    public ResponseEntity<Void> uploadFile(@RequestBody FilePath filePath) throws IOException {
         ResponseStatus response = storedFileService.upload(filePath.getFilePath());
         if (response == GOOD)
             return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+        else if (response == ALREADY_EXISTS)
+            return ResponseEntity.notFound().build();
+        else return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("{title}")
-    public ResponseEntity<StoredFile> getUser(@PathVariable String title) {
+    public ResponseEntity<StoredFile> getFile(@PathVariable String title) {
         try{
             StoredFile storedFile = storedFileService.getStoredFile(title);
             return ResponseEntity.ok().body(storedFile);

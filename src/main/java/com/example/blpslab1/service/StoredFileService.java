@@ -1,5 +1,6 @@
 package com.example.blpslab1.service;
 
+import com.example.blpslab1.model.Session;
 import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.repo.SessionRepo;
 import com.example.blpslab1.repo.StoredFileRepo;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.example.blpslab1.service.ResponseStatus.*;
+import static java.lang.Thread.sleep;
 
 @Service
 public class StoredFileService {
@@ -31,6 +33,8 @@ public class StoredFileService {
     public List<String> getAllFilesName() {
         try {
             String username = sessionRepo.findAll().stream().findFirst().get().getUsername();
+            System.out.println("QWFHJVCDVHJCVBDVBJKDSBJVJ");
+            if(username.isEmpty()) return null;
             return storedFileRepo
                     .findAll()
                     .stream()
@@ -39,6 +43,7 @@ public class StoredFileService {
                     .stream()
                     .map(StoredFile::getTitle)
                     .toList();
+
         } catch (NoSuchElementException e) {
             return null;
         }
@@ -46,19 +51,21 @@ public class StoredFileService {
 
     public ResponseStatus upload(String filePath) throws IOException {
         try {
-            String username = sessionRepo.findAll().stream().findFirst().get().getUsername();
+            Session session = sessionRepo.findAll().stream().findFirst().get();
+            String username = session.getUsername();
             Path path = Paths.get(filePath);
             String fileName = path.getFileName().toString();
             Binary data = new Binary(Files.readAllBytes(path));
             try {
-                storedFileRepo.findAll().stream().filter(file -> file.getTitle().equals(fileName)).findFirst().get();
+                storedFileRepo.findAll().stream().filter(file -> file.getUsername().equals(username)).filter(file -> file.getTitle().equals(fileName)).findFirst().get();
                 return ALREADY_EXISTS;
             } catch (NoSuchElementException e) {
                 StoredFile storedFile = new StoredFile(fileName, data, username);
                 storedFileRepo.save(storedFile);
+                if(!session.getSubscription()) sleep(5000);
                 return GOOD;
             }
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | InterruptedException e) {
             return null;
         }
     }
@@ -66,8 +73,8 @@ public class StoredFileService {
     //TODO: здесь нет разницы между "нет файла" и "не авторизован"
     public StoredFile getStoredFile(String title) {
         try {
-            sessionRepo.findAll().stream().findFirst().get();
-            return storedFileRepo.findAll().stream().filter(file -> file.getTitle().equals(title)).findFirst().get();
+            String username = sessionRepo.findAll().stream().findFirst().get().getUsername();
+            return storedFileRepo.findAll().stream().filter(file -> file.getUsername().equals(username)).filter(file -> file.getTitle().equals(title)).findFirst().get();
         } catch (NoSuchElementException e) {
             return null;
         }

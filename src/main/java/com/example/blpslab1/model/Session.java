@@ -14,9 +14,12 @@ public class Session {
     @Id
     private String id;
     private String username;
+    private Boolean subscription;
 
 
-    public Session(String username){
+    public Session(String username, Boolean subscription){
         this.username = username;
+        this.subscription = subscription;
+
     }
 }

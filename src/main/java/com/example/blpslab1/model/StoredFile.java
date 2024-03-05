@@ -16,7 +16,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class StoredFile {
     @Id
     private String id;
-    @Indexed(unique = true)
     private String title;
     private Binary data;
     private String username;
