@@ -1,7 +1,6 @@
 package com.example.blpslab1.service;
 
 import com.example.blpslab1.model.Session;
-import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.repo.SessionRepo;
 import com.example.blpslab1.repo.StoredFileRepo;
@@ -12,10 +11,10 @@ import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.example.blpslab1.service.ResponseStatus.*;
+import static com.example.blpslab1.service.Role.USER;
 
 @Service
 public class UserService {
@@ -30,10 +29,6 @@ public class UserService {
         this.storedFileRepo = storedFileRepo;
     }
 
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
-    }
-
 
     public ResponseStatus signIn(User reqUser) {
         User realUser;
@@ -41,7 +36,13 @@ public class UserService {
             realUser = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(reqUser.getUsername())).findFirst().get();
             String reqPass = encryptPassword(reqUser.getPassword());
             if (realUser.getPassword().equals(reqPass)) {
-                sessionRepo.save(new Session(realUser.getUsername(), realUser.getSubscription()));
+                Session session = getUserSession();
+                if(session == null) sessionRepo.save(new Session(USER, realUser.getUsername(), realUser.getSubscription()));
+                else {
+                    session.setUsername(realUser.getUsername());
+                    session.setSubscription(realUser.getSubscription());
+                    sessionRepo.save(session);
+                }
                 return GOOD;
             } else return WRONG_PASSWORD;
         } catch (NoSuchElementException e) {
@@ -61,46 +62,60 @@ public class UserService {
         }
     }
 
-    public User getUser(String username) {
+    public User getUser() {
         try {
+            Session session = getUserSession();
+            String username = session.getUsername();
             return userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | NullPointerException e) {
             return null;
         }
     }
 
-    public ResponseStatus delete(String username) {
+    public ResponseStatus delete() {
         User user;
         try {
+            Session session = getUserSession();
+            String username = session.getUsername();
             user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
             userRepo.delete(user);
-            Session session = sessionRepo.findAll().stream().findFirst().get();
-            if (session.getUsername().equals(username))
-                sessionRepo.delete(sessionRepo.findAll().stream().findFirst().get());
+            if (session.getUsername().equals(username)) {
+                session.setSubscription(null);
+                session.setUsername(null);
+                sessionRepo.save(session);
+            }
             storedFileRepo.deleteAll(storedFileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
             return GOOD;
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
         }
     }
 
 
     public void exit() {
-        sessionRepo.delete(sessionRepo.findAll().stream().findFirst().get());
+        try {
+            Session session = getUserSession();
+            session.setSubscription(null);
+            session.setUsername(null);
+            sessionRepo.save(session);
+        } catch (NoSuchElementException e) {
+            return;
+        }
     }
 
-    public ResponseStatus updateSub(String username) {
+    public ResponseStatus updateSub() {
         try {
+            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
+            String username = session.getUsername();
             User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
             user.setSubscription(!(user.getSubscription()));
             userRepo.save(user);
-            Session session = sessionRepo.findAll().stream().findFirst().get();
             if (session.getUsername().equals(username)) {
                 session.setSubscription(user.getSubscription());
                 sessionRepo.save(session);
             }
             return GOOD;
-        } catch (NoSuchElementException e) {
+        } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
         }
     }
@@ -119,6 +134,15 @@ public class UserService {
             strHexString.append(hex);
         }
         return strHexString.toString();
+    }
+
+
+    Session getUserSession() {
+        try {
+            return sessionRepo.findAll().stream().filter(session -> session.getRole() == USER).findFirst().get();
+        } catch (NoSuchElementException e) {
+            return null;
+        }
     }
 
 }

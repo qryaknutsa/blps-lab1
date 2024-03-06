@@ -26,11 +26,6 @@ import static com.example.blpslab1.service.ResponseStatus.*;
 public class UserController {
     private final UserService userService;
 
-    @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok().body(userService.getAllUsers());
-    }
-
     @PostMapping("/signin")
     public ResponseEntity<Void> signIn(@RequestBody User user) {
         ResponseStatus response = userService.signIn(user);
@@ -51,26 +46,26 @@ public class UserController {
         else return ResponseEntity.internalServerError().build();
     }
 
-    @GetMapping("{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
+    @GetMapping()
+    public ResponseEntity<User> getUser() {
         try{
-            User user = userService.getUser(username);
+            User user = userService.getUser();
             return ResponseEntity.ok().body(user);
         } catch(NullPointerException e){
             return ResponseEntity.internalServerError().body(null);
         }
     }
-    @DeleteMapping("{username}")
-    public ResponseEntity<Void> delete(@PathVariable String username){
-        ResponseStatus response = userService.delete(username);
+    @DeleteMapping()
+    public ResponseEntity<Void> delete(){
+        ResponseStatus response = userService.delete();
         if (response == GOOD)
             return ResponseEntity.ok().build();
         else return ResponseEntity.internalServerError().build();
     }
 
-    @PutMapping("{username}")
-    public ResponseEntity<Void> changeSub(@PathVariable String username){
-        ResponseStatus response = userService.updateSub(username);
+    @PutMapping()
+    public ResponseEntity<Void> changeSub(){
+        ResponseStatus response = userService.updateSub();
         if (response == GOOD)
             return ResponseEntity.ok().build();
         else return ResponseEntity.internalServerError().build();

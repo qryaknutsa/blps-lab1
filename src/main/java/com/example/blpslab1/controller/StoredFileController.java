@@ -25,13 +25,15 @@ public class StoredFileController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Void> uploadFile(@RequestBody FilePath filePath) throws IOException {
+    public ResponseEntity<String> uploadFile(@RequestBody FilePath filePath) throws IOException {
         ResponseStatus response = storedFileService.upload(filePath.getFilePath());
         if (response == GOOD)
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok("Файл загружен");
         else if (response == ALREADY_EXISTS)
-            return ResponseEntity.notFound().build();
-        else return ResponseEntity.badRequest().build();
+            return ResponseEntity.ok("Файл не загружен. Файл с таким именем уже загружен");
+        else if (response == NOT_FOUND)
+            return ResponseEntity.ok("Файл не загружен. Файл не найден");
+        else return ResponseEntity.ok("Файл не загружен. Войдите в систему");
     }
 
     @GetMapping("{title}")
@@ -42,6 +44,14 @@ public class StoredFileController {
         } catch(NullPointerException e){
             return ResponseEntity.internalServerError().body(null);
         }
+    }
+
+    @DeleteMapping("{title}")
+    public ResponseEntity<String> deleteFile(@PathVariable String title) {
+        ResponseStatus status = storedFileService.deleteFile(title);
+        if(status == GOOD) return ResponseEntity.ok("Файл удален");
+        else if(status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
+        else return ResponseEntity.ok("Файл не удален. Войдите в систему");
     }
 
 }
