@@ -1,6 +1,7 @@
 package com.example.blpslab1.controller;
 
 import com.example.blpslab1.model.User;
+import com.example.blpslab1.model.Wallet;
 import com.example.blpslab1.service.ResponseStatus;
 import com.example.blpslab1.service.UserService;
 
@@ -63,13 +64,38 @@ public class UserController {
         else return ResponseEntity.internalServerError().build();
     }
 
-    @PutMapping()
-    public ResponseEntity<Void> changeSub(){
-        ResponseStatus response = userService.updateSub();
+    @PutMapping("/buy-sub")
+    public ResponseEntity<Void> buySub(){
+        ResponseStatus response = userService.buySub();
         if (response == GOOD)
             return ResponseEntity.ok().build();
         else return ResponseEntity.internalServerError().build();
     }
+
+    @PutMapping("/cancel-sub")
+    public ResponseEntity<Void> cancelSub(){
+        ResponseStatus response = userService.cancelSub();
+        if (response == GOOD)
+            return ResponseEntity.ok().build();
+        else return ResponseEntity.internalServerError().build();
+    }
+
+    @PutMapping("/put-money")
+    public ResponseEntity<Void> putMoney(@RequestBody Wallet wallet){
+        ResponseStatus response = userService.putMoney(wallet.getSum());
+        if (response == GOOD)
+            return ResponseEntity.ok().build();
+        else return ResponseEntity.internalServerError().build();
+    }
+
+    @PutMapping("/withdraw-money")
+    public ResponseEntity<Void> withdrawMoney(@RequestBody Wallet wallet){
+        ResponseStatus response = userService.withdrawMoney(wallet.getSum());
+        if (response == GOOD)
+            return ResponseEntity.ok().build();
+        else return ResponseEntity.internalServerError().build();
+    }
+
 
 
     @GetMapping("/exit")

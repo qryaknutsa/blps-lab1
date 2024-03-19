@@ -8,6 +8,7 @@ import com.example.blpslab1.repo.UserRepo;
 
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -16,8 +17,11 @@ import java.util.NoSuchElementException;
 import static com.example.blpslab1.service.ResponseStatus.*;
 import static com.example.blpslab1.service.Role.USER;
 
+
 @Service
 public class UserService {
+    public static double subscription_price = 1500;
+
     private final UserRepo userRepo;
     private final SessionRepo sessionRepo;
     private final StoredFileRepo storedFileRepo;
@@ -37,7 +41,8 @@ public class UserService {
             String reqPass = encryptPassword(reqUser.getPassword());
             if (realUser.getPassword().equals(reqPass)) {
                 Session session = getUserSession();
-                if(session == null) sessionRepo.save(new Session(USER, realUser.getUsername(), realUser.getSubscription()));
+                if (session == null)
+                    sessionRepo.save(new Session(USER, realUser.getUsername(), realUser.getSubscription()));
                 else {
                     session.setUsername(realUser.getUsername());
                     session.setSubscription(realUser.getSubscription());
@@ -103,17 +108,75 @@ public class UserService {
         }
     }
 
-    public ResponseStatus updateSub() {
+    @Transactional
+    public ResponseStatus buySub() {
         try {
             Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
             String username = session.getUsername();
             User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
-            user.setSubscription(!(user.getSubscription()));
+
+            if (user.getSubscription()) {
+                return ALREADY_EXISTS;
+            } else {
+                if (user.getWallet() < subscription_price) return OUT_OF_BALANCE;
+                else {
+                    user.setWallet(user.getWallet() - subscription_price);
+                    user.setSubscription(true);
+                    userRepo.save(user);
+                    if (session.getUsername().equals(username)) {
+                        session.setSubscription(true);
+                        sessionRepo.save(session);
+                    }
+                }
+                return GOOD;
+            }
+        } catch (NoSuchElementException | NullPointerException e) {
+            return NOT_FOUND;
+        }
+    }
+
+    @Transactional
+    public ResponseStatus cancelSub() {
+        try {
+            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
+            String username = session.getUsername();
+            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+
+            user.setSubscription(false);
             userRepo.save(user);
             if (session.getUsername().equals(username)) {
-                session.setSubscription(user.getSubscription());
+                session.setSubscription(false);
                 sessionRepo.save(session);
             }
+            return GOOD;
+        } catch (NoSuchElementException | NullPointerException e) {
+            return NOT_FOUND;
+        }
+    }
+
+    @Transactional
+    public ResponseStatus putMoney(Double sum) {
+        try {
+            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
+            String username = session.getUsername();
+            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            user.setWallet(user.getWallet() + sum);
+            userRepo.save(user);
+            return GOOD;
+        } catch (NoSuchElementException | NullPointerException e) {
+            return NOT_FOUND;
+        }
+    }
+
+
+    @Transactional
+    public ResponseStatus withdrawMoney(Double sum) {
+        try {
+            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
+            String username = session.getUsername();
+            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            user.setWallet(user.getWallet() - sum);
+            userRepo.save(user);
             return GOOD;
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;

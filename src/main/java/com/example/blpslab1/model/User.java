@@ -19,11 +19,13 @@ public class User {
     private String username;
     private String password;
     private Boolean subscription;
+    private Double wallet = (double) 0;
 
-    public User(String username, String password, Boolean subscription){
+    public User(String username, String password, Boolean subscription, Double wallet){
         this.username = username;
         this.password = password;
         this.subscription = subscription;
+        this.wallet = wallet;
     }
 
 }

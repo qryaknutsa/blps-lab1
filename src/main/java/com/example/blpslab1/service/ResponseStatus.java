@@ -5,6 +5,7 @@ public enum ResponseStatus {
     NOT_FOUND,
     GOOD,
     ALREADY_EXISTS,
-    NOT_SIGNED_IN
+    NOT_SIGNED_IN,
+    OUT_OF_BALANCE
 
 }
