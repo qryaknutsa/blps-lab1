@@ -1,12 +1,12 @@
-package com.example.blpslab1.model;
+package com.example.blpslab1.model.subModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class FilePath {
-    String filePath;
+@AllArgsConstructor
+public class Wallet {
+    private Double sum;
 }

@@ -1,4 +1,4 @@
-package com.example.blpslab1.service;
+package com.example.blpslab1.dto;
 
 public enum ResponseStatus {
     WRONG_PASSWORD,

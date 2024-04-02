@@ -1,211 +1,186 @@
 package com.example.blpslab1.service;
 
-import com.example.blpslab1.model.Session;
+import bitronix.tm.TransactionManagerServices;
+import bitronix.tm.BitronixTransactionManager;
+import com.example.blpslab1.dto.ResponseStatus;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.repo.SessionRepo;
-import com.example.blpslab1.repo.StoredFileRepo;
+import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
 
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
+import javax.transaction.*;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-import static com.example.blpslab1.service.ResponseStatus.*;
-import static com.example.blpslab1.service.Role.USER;
+import static com.example.blpslab1.dto.ResponseStatus.*;
 
 
 @Service
-public class UserService {
+@RequiredArgsConstructor
+public class UserService implements UserDetailsService {
     public static double subscription_price = 1500;
-
+    private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
-    private final SessionRepo sessionRepo;
-    private final StoredFileRepo storedFileRepo;
-    private final MessageDigest md = MessageDigest.getInstance("SHA-512");
-
-    public UserService(UserRepo userRepo, SessionRepo sessionRepo, StoredFileRepo storedFileRepo) throws NoSuchAlgorithmException {
-        this.userRepo = userRepo;
-        this.sessionRepo = sessionRepo;
-        this.storedFileRepo = storedFileRepo;
-    }
+    private final FileRepo fileRepo;
 
 
-    public ResponseStatus signIn(User reqUser) {
-        User realUser;
+    public List<User> getAllUsers() {
         try {
-            realUser = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(reqUser.getUsername())).findFirst().get();
-            String reqPass = encryptPassword(reqUser.getPassword());
-            if (realUser.getPassword().equals(reqPass)) {
-                Session session = getUserSession();
-                if (session == null)
-                    sessionRepo.save(new Session(USER, realUser.getUsername(), realUser.getSubscription()));
-                else {
-                    session.setUsername(realUser.getUsername());
-                    session.setSubscription(realUser.getSubscription());
-                    sessionRepo.save(session);
-                }
-                return GOOD;
-            } else return WRONG_PASSWORD;
+            return userRepo.findAll();
         } catch (NoSuchElementException e) {
-            return NOT_FOUND;
+            return null;
         }
     }
 
-
-    public ResponseStatus signUp(User user) {
+    public User getUser(String username) {
         try {
-            userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(user.getUsername())).findFirst().get();
-            return ALREADY_EXISTS;
-        } catch (NoSuchElementException e) {
-            user.setPassword(encryptPassword(user.getPassword()));
-            userRepo.save(user);
-            return GOOD;
-        }
-    }
-
-    public User getUser() {
-        try {
-            Session session = getUserSession();
-            String username = session.getUsername();
             return userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
         } catch (NoSuchElementException | NullPointerException e) {
             return null;
         }
     }
 
-    public ResponseStatus delete() {
+    public ResponseStatus saveUser(User user){
+        try{
+            userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
+            return ALREADY_EXISTS;
+        } catch (NoSuchElementException e){
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepo.save(user);
+            return GOOD;
+        }
+    }
+
+
+    public ResponseStatus delete(String username) {
         User user;
         try {
-            Session session = getUserSession();
-            String username = session.getUsername();
-            user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             userRepo.delete(user);
-            if (session.getUsername().equals(username)) {
-                session.setSubscription(null);
-                session.setUsername(null);
-                sessionRepo.save(session);
-            }
-            storedFileRepo.deleteAll(storedFileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
+            fileRepo.deleteAll(fileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
             return GOOD;
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
         }
     }
 
-
-    public void exit() {
+    public ResponseStatus changePassword(User user) {
         try {
-            Session session = getUserSession();
-            session.setSubscription(null);
-            session.setUsername(null);
-            sessionRepo.save(session);
-        } catch (NoSuchElementException e) {
-            return;
+            User user1 = userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
+            user1.setPassword(passwordEncoder.encode(user.getPassword()));
+            userRepo.save(user1);
+            return GOOD;
+        } catch (NoSuchElementException | NullPointerException e) {
+            return NOT_FOUND;
         }
     }
 
-    @Transactional
-    public ResponseStatus buySub() {
+    public ResponseStatus changeUsername(String oldUsername, User user) {
         try {
-            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
-            String username = session.getUsername();
-            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
+            return ALREADY_EXISTS;
+        } catch (NoSuchElementException e) {
+            User user1 = userRepo.findUserByUsername(oldUsername).orElseThrow();
+            user1.setUsername(user.getUsername());
+            userRepo.save(user1);
+            return GOOD;
+        }
+    }
 
+
+    public ResponseStatus buySub(String username) throws SystemException {
+        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+
+        try {
+            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             if (user.getSubscription()) {
                 return ALREADY_EXISTS;
             } else {
                 if (user.getWallet() < subscription_price) return OUT_OF_BALANCE;
                 else {
+                    tm.begin();
                     user.setWallet(user.getWallet() - subscription_price);
                     user.setSubscription(true);
                     userRepo.save(user);
-                    if (session.getUsername().equals(username)) {
-                        session.setSubscription(true);
-                        sessionRepo.save(session);
-                    }
+                    tm.commit();
                 }
                 return GOOD;
             }
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
+        } catch (Exception e) {
+            tm.rollback();
         }
+        return NOT_FOUND;
     }
 
-    @Transactional
-    public ResponseStatus cancelSub() {
-        try {
-            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
-            String username = session.getUsername();
-            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
 
+    public ResponseStatus cancelSub(String username) throws SystemException {
+        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+        try {
+            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
+            tm.begin();
             user.setSubscription(false);
             userRepo.save(user);
-            if (session.getUsername().equals(username)) {
-                session.setSubscription(false);
-                sessionRepo.save(session);
-            }
+            tm.commit();
             return GOOD;
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
+        } catch (Exception e) {
+            tm.rollback();
         }
+        return NOT_FOUND;
     }
 
-    @Transactional
-    public ResponseStatus putMoney(Double sum) {
+    public ResponseStatus putMoney(String username, Double sum) throws SystemException  {
+        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
         try {
-            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
-            String username = session.getUsername();
-            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
+            tm.begin();
             user.setWallet(user.getWallet() + sum);
             userRepo.save(user);
+            tm.commit();
             return GOOD;
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
+        } catch (Exception e) {
+            tm.rollback();
         }
+        return NOT_FOUND;
     }
 
-
-    @Transactional
-    public ResponseStatus withdrawMoney(Double sum) {
+    public ResponseStatus withdrawMoney(String username, Double sum) throws SystemException {
+        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
         try {
-            Session session = sessionRepo.findAll().stream().filter(session1 -> session1.getRole() == USER).findFirst().get();
-            String username = session.getUsername();
-            User user = userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
+            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
+            tm.begin();
             user.setWallet(user.getWallet() - sum);
             userRepo.save(user);
+            tm.commit();
             return GOOD;
         } catch (NoSuchElementException | NullPointerException e) {
             return NOT_FOUND;
+        } catch (Exception e) {
+            tm.rollback();
         }
+        return NOT_FOUND;
+
     }
 
-
-    private String encryptPassword(final String password) {
-        md.update(password.getBytes());
-        byte[] byteBuffer = md.digest();
-        StringBuilder strHexString = new StringBuilder();
-
-        for (byte b : byteBuffer) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                strHexString.append('0');
-            }
-            strHexString.append(hex);
-        }
-        return strHexString.toString();
-    }
-
-
-    Session getUserSession() {
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            return sessionRepo.findAll().stream().filter(session -> session.getRole() == USER).findFirst().get();
+            return userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
         } catch (NoSuchElementException e) {
-            return null;
+            throw new UsernameNotFoundException("User not found");
         }
     }
-
 }

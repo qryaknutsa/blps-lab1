@@ -27,7 +27,12 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb:3.2.3'
-	implementation 'org.springframework:spring-tx:6.1.5'
+	implementation 'org.springframework.boot:spring-boot-starter-jta-bitronix:2.4.13'
+	compileOnly 'javax:javaee-api:8.0.1'
+	implementation 'org.springframework.boot:spring-boot-starter-security:3.2.3'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
 }
 
