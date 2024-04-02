@@ -6,6 +6,8 @@ import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.dto.ResponseStatus;
 import com.example.blpslab1.service.FileService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -41,13 +43,18 @@ public class FileController {
         else return ResponseEntity.ok("Файл не загружен. Войдите в систему");
     }
 
-    @GetMapping("/user/{title}")
-    public ResponseEntity<StoredFile> getFileUser(@PathVariable String title) {
-        try{
+    @GetMapping(value = "/user/{title}")
+    public ResponseEntity<?> getFileUser(@PathVariable String title) {
+        try {
             String username = getLoggedUsername();
-            StoredFile storedFile = fileService.getStoredFile(username, title);
-            return ResponseEntity.ok().body(storedFile);
-        } catch(NullPointerException e){
+            StoredFile file = fileService.getStoredFile(username, title);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/plain"));
+            headers.setContentDispositionFormData("attachment", file.getTitle());
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(file.getData().getData());
+        } catch (NullPointerException e) {
             return ResponseEntity.internalServerError().body(null);
         }
     }
@@ -56,13 +63,10 @@ public class FileController {
     public ResponseEntity<String> deleteFileUser(@PathVariable String title) {
         String username = getLoggedUsername();
         ResponseStatus status = fileService.deleteFile(username, title);
-        if(status == GOOD) return ResponseEntity.ok("Файл удален");
-        else if(status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
+        if (status == GOOD) return ResponseEntity.ok("Файл удален");
+        else if (status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
         else return ResponseEntity.ok("Файл не удален. Войдите в систему");
     }
-
-
-
 
 
     //ADMIN PART
@@ -85,10 +89,15 @@ public class FileController {
     }
 
     @GetMapping("/admin/{username}/{title}")
-    public ResponseEntity<StoredFile> getFileUser(@PathVariable String username, @PathVariable String title) {
+    public ResponseEntity<?> getFileUser(@PathVariable String username, @PathVariable String title) {
         try{
-            StoredFile storedFile = fileService.getStoredFile(username, title);
-            return ResponseEntity.ok().body(storedFile);
+            StoredFile file = fileService.getStoredFile(username, title);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/plain"));
+            headers.setContentDispositionFormData("attachment", file.getTitle());
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(file.getData().getData());
         } catch(NullPointerException e){
             return ResponseEntity.internalServerError().body(null);
         }
@@ -97,11 +106,10 @@ public class FileController {
     @DeleteMapping("/admin/{username}/{title}")
     public ResponseEntity<String> deleteFileUser(@PathVariable String username, @PathVariable String title) {
         ResponseStatus status = fileService.deleteFile(username, title);
-        if(status == GOOD) return ResponseEntity.ok("Файл удален");
-        else if(status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
+        if (status == GOOD) return ResponseEntity.ok("Файл удален");
+        else if (status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
         else return ResponseEntity.ok("Файл не удален. Войдите в систему");
     }
-
 
 
     private User getLoggedUser() {

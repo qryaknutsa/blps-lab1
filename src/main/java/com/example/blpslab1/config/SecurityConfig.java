@@ -30,8 +30,8 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("api/auth/**").permitAll()
-//                                .anyRequest().permitAll()
+                        req.requestMatchers("api/auth/**")
+                                .permitAll()
                                 .requestMatchers("/api/user/**").hasAuthority(USER.name())
                                 .requestMatchers("api/admin/**").hasAuthority(ADMIN.name())
                                 .anyRequest().authenticated()
@@ -39,13 +39,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(logout ->
-                        logout.logoutUrl("/api/auth/logout")
+                .logout(logout -> logout.logoutUrl("/api/auth/logout")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
                 );
         return http.build();
     }
 }
-
-//TODO: ExpiredJwtException

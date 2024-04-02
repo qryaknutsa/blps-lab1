@@ -17,7 +17,6 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-
     private static final String SECRET_KEY = "C5F458C406B1338DEC3108AFBCDFD72E763D1D3AA45888497A65C6AEAF030A86";
 
     public String extractUsername(String token) {
@@ -28,6 +27,8 @@ public class JwtService {
     public String generateToken(UserDetails userDetails){
         return generateToken(new HashMap<>(), userDetails);
     }
+
+    //TODO: добавить refreshToken
 
     public String generateToken(
             Map<String, Object> extraClaims,

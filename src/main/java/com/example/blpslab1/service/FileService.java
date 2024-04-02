@@ -7,9 +7,13 @@ import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.Binary;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,7 +46,8 @@ public class FileService {
 
     public ResponseStatus upload(String username, String filePath) throws IOException {
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);;
+            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
+            ;
             Path path = Paths.get(filePath);
             String fileName = path.getFileName().toString();
             Binary data = new Binary(Files.readAllBytes(path));
@@ -60,6 +65,21 @@ public class FileService {
         }
     }
 
+//    public Object getStoredFile(String username, String title) {
+//        try {
+//            StoredFile file = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(NoSuchElementException::new);
+//            byte[] data = file.getData().getData();
+//            try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
+//                 ObjectInputStream ois = new ObjectInputStream(bis)) {
+//                return ois.readObject();
+//            } catch (IOException | ClassNotFoundException e) {
+//                return null;
+//            }
+//        } catch (NoSuchElementException e) {
+//            return null;
+//        }
+//    }
+
     public StoredFile getStoredFile(String username, String title) {
         try {
             return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(NoSuchElementException::new);
@@ -67,7 +87,6 @@ public class FileService {
             return null;
         }
     }
-
 
     public ResponseStatus deleteFile(String username, String title) {
         try {
