@@ -31,6 +31,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security:3.2.3'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'org.postgresql:postgresql'
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-activemq
+	implementation 'org.springframework.boot:spring-boot-starter-activemq:3.2.4'
+
 }
 
 tasks.named('bootBuildImage') {
