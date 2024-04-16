@@ -29,7 +29,7 @@ public class UserService implements UserDetailsService {
     public static double subscription_price = 1500;
     private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
-    private final FileRepo fileRepo;
+    private final FileService fileService;
 
 
     public List<User> getAllUsers() {
@@ -61,8 +61,7 @@ public class UserService implements UserDetailsService {
         User user;
         user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         userRepo.delete(user);
-        fileRepo.deleteAll(fileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
-
+        fileService.deleteAllFilesByUsername(username);
     }
 
     //UserNotFoundException

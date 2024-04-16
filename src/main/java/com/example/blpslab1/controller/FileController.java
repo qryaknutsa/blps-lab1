@@ -3,8 +3,8 @@ package com.example.blpslab1.controller;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.model.subModel.FilePath;
-import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.service.FileService;
+import com.example.blpslab1.serviceConnection.Message;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
@@ -60,7 +60,7 @@ public class FileController {
                     return ResponseEntity.ok().body("Файл загружен");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | FileAlreadyExistsException | InterruptedException e) {
+        } catch (UserNotFoundException | InterruptedException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
@@ -70,7 +70,7 @@ public class FileController {
         try {
             User loggedUser = getLoggedUser();
             if (username == null) {
-                StoredFile file = fileService.getStoredFile(loggedUser.getUsername(), title);
+                Message file = fileService.getStoredFile(loggedUser.getUsername(), title);
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.parseMediaType("text/plain"));
                 headers.setContentDispositionFormData("attachment", file.getTitle());
@@ -80,7 +80,7 @@ public class FileController {
                         .body(file.getData());
             } else {
                 if (loggedUser.getRoleName() == ADMIN) {
-                    StoredFile file = fileService.getStoredFile(username, title);
+                    Message file = fileService.getStoredFile(username, title);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.parseMediaType("text/plain"));
                     headers.setContentDispositionFormData("attachment", file.getTitle());
@@ -90,7 +90,7 @@ public class FileController {
                             .body(file.getData());
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | FileAlreadyExistsException e) {
+        } catch (UserNotFoundException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
@@ -108,7 +108,7 @@ public class FileController {
                     return ResponseEntity.ok().body("Файл загружен");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | FileAlreadyExistsException  e) {
+        } catch (UserNotFoundException  e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }

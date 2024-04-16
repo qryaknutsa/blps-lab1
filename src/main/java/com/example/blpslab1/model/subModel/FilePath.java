@@ -1,3 +1,4 @@
+
 package com.example.blpslab1.model.subModel;
 
 import lombok.AllArgsConstructor;

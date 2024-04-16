@@ -30,6 +30,8 @@ dependencies {
 	compileOnly 'javax:javaee-api:8.0.1'
 	implementation 'org.springframework.boot:spring-boot-starter-security:3.2.3'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-activemq:3.2.4'
+
 	runtimeOnly 'org.postgresql:postgresql'
 }
 

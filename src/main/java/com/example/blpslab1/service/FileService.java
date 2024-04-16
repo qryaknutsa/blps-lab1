@@ -1,70 +1,73 @@
 package com.example.blpslab1.service;
 
 import com.example.blpslab1.exceptions.*;
-import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
-import lombok.RequiredArgsConstructor;
+import com.example.blpslab1.serviceConnection.Message;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static java.lang.Thread.sleep;
 
+@Slf4j
 @Service
-@RequiredArgsConstructor
+@Component
+@EnableJms
 public class FileService {
-    private final FileRepo fileRepo;
+    private final JmsTemplate jmsTemplate;
     private final UserRepo userRepo;
 
+    private final String queueName = "File";
+
+    @Autowired
+    public FileService(UserRepo userRepo, JmsTemplate jmsTemplate) {
+        this.userRepo = userRepo;
+        this.jmsTemplate = jmsTemplate;
+    }
 
     public List<String> getAllFilesName() {
-        return fileRepo.findAll().stream()
-                .map(StoredFile::getTitle)
-                .collect(Collectors.toList());
+        Message request = new Message();
+        jmsTemplate.convertAndSend(queueName + "AllFilesNames-request", request);
+        Message response = (Message) jmsTemplate.receiveAndConvert(queueName + "AllFilesNames-response");
+        assert response != null;
+        return response.getList();
     }
 
 
     //UserNotFoundException
     public List<String> getAllFilesNameByUsername(String username) {
         userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        return fileRepo.findAllByUsername(username).stream()
-                .map(StoredFile::getTitle)
-                .collect(Collectors.toList());
-
+        Message request = new Message(username);
+        jmsTemplate.convertAndSend(queueName + "AllFilesNamesByUsername-request", request);
+        Message response = (Message) jmsTemplate.receiveAndConvert(queueName + "AllFilesNamesByUsername-response");
+        assert response != null;
+        return response.getList();
     }
 
     //FileAlreadyExistsException
     //UserNotFoundException
     public void upload(String username, String filePath) throws IOException, InterruptedException {
         User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        Path path = Paths.get(filePath);
-        String fileName = path.getFileName().toString();
-        String data = Files.readString(path);
-        try {
-            fileRepo.findStoredFileByTitleAndUsername(fileName, username).orElseThrow(FileNotFoundException::new);
-            throw new FileAlreadyExistsException("Файл с таким именем уже существует");
-        } catch (FileNotFoundException e) {
-            StoredFile storedFile = new StoredFile(fileName, data, username);
-            fileRepo.save(storedFile);
-            if (!user.getSubscription()) sleep(5000);
-        }
-
+        Message request = new Message(username, filePath, user.getSubscription());
+        jmsTemplate.convertAndSend(queueName + "SaveFile-request", request);
 
     }
 
 
     //FileAlreadyExistException
     //UserNotFoundException
-    public StoredFile getStoredFile(String username, String title) {
+    public Message getStoredFile(String username, String title) {
         userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
+        Message request = new Message(title, username);
+        jmsTemplate.convertAndSend(queueName + "GetFile-request", request);
+        return (Message) jmsTemplate.receiveAndConvert(queueName + "GetFile-response");
+//        return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
 
     }
 
@@ -72,9 +75,14 @@ public class FileService {
     //UserNotFoundException
     public void deleteFile(String username, String title) {
         userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
-        fileRepo.delete(storedFile);
+        Message request = new Message(title, username);
+        jmsTemplate.convertAndSend(queueName + "DeleteFile-request", request);
+    }
 
+    public void deleteAllFilesByUsername(String username) {
+        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        Message request = new Message(username);
+        jmsTemplate.convertAndSend(queueName + "DeleteAllFilesByUsername-request", request);
     }
 
 
