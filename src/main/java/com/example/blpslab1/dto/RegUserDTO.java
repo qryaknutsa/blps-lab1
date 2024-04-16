@@ -1,4 +1,4 @@
-package com.example.blpslab1.auth.dto;
+package com.example.blpslab1.dto;
 
 import com.example.blpslab1.model.subModel.Role;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthenticationRequest {
+public class RegUserDTO {
     private String username;
     private String password;
     private Role role;

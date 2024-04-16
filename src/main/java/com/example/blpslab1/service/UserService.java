@@ -2,6 +2,7 @@ package com.example.blpslab1.service;
 
 import bitronix.tm.TransactionManagerServices;
 import bitronix.tm.BitronixTransactionManager;
+import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.model.subModel.Role;
@@ -43,13 +44,13 @@ public class UserService implements UserDetailsService {
 
 
     //UserAlreadyExistException
-    public void saveUser(User user) {
+    public void saveUser(RegUserDTO userDTO) {
+        User user = new User(userDTO.getUsername(), passwordEncoder.encode(userDTO.getPassword()), userDTO.getRole());
         try {
-            userRepo.findUserByUsername(user.getUsername()).orElseThrow(UserNotFoundException::new);
+            userRepo.findUserByUsername(userDTO.getUsername()).orElseThrow(UserNotFoundException::new);
             throw new UserAlreadyExistsException("User с таким username уже существует, user не сохранен");
         } catch (UserNotFoundException e) {
-            if (user.getRole() == Role.ADMIN) user.setSubscription(true);
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            if (userDTO.getRole() == Role.ADMIN) user.setSubscription(true);
             userRepo.save(user);
         }
     }

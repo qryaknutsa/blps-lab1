@@ -1,9 +1,8 @@
-package com.example.blpslab1.auth.controller;
+package com.example.blpslab1.controller;
 
-import com.example.blpslab1.auth.service.AuthenticationService;
-import com.example.blpslab1.auth.dto.RegisterRequest;
-import com.example.blpslab1.auth.dto.AuthenticationRequest;
-import com.example.blpslab1.auth.dto.AuthenticationResponse;
+import com.example.blpslab1.dto.AuthUserDTO;
+import com.example.blpslab1.service.AuthenticationService;
+import com.example.blpslab1.dto.RegUserDTO;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +19,8 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("/sign-up")
-    public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request){
+    public ResponseEntity<?> register(@RequestBody AuthUserDTO request){
         return ResponseEntity.ok(service.register(request));
-    }
-
-    @PostMapping("/sign-in")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
-        return ResponseEntity.ok(service.authenticate(request));
     }
 
 }

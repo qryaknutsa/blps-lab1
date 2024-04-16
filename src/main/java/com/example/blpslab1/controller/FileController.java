@@ -7,11 +7,13 @@ import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.service.FileService;
 import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.lang.Nullable;
 
 import java.io.IOException;
 
@@ -26,7 +28,7 @@ public class FileController {
 
     //    @GetMapping("/all-by-user/{username}")
     @RequestMapping(method = GET, value = {"/all-by-user", "/all-by-user/{username}"})
-    public ResponseEntity<?> getAllFiles(@PathVariable String username) {
+    public ResponseEntity<?> getAllFiles(@PathVariable @Nullable String username) {
         try {
             User loggedUser = getLoggedUser();
             if (username == null)
@@ -47,7 +49,7 @@ public class FileController {
     }
 
     @RequestMapping(method = POST, value = {"/upload", "/upload/{username}"})
-    public ResponseEntity<?> uploadFileUser(@PathVariable String username, @RequestBody FilePath filePath) throws IOException {
+    public ResponseEntity<?> uploadFileUser(@PathVariable @Nullable String username, @RequestBody @NonNull FilePath filePath) throws IOException {
         try {
             User loggedUser = getLoggedUser();
             if (username == null) {
@@ -65,7 +67,7 @@ public class FileController {
     }
 
     @RequestMapping(method = GET, value = {"/file/{title}", "/file/{username}/{title}"})
-    public ResponseEntity<?> getUserFile(@PathVariable String username, @PathVariable String title) {
+    public ResponseEntity<?> getUserFile(@PathVariable @Nullable String username, @PathVariable @NonNull String title) {
         try {
             User loggedUser = getLoggedUser();
             if (username == null) {
@@ -95,7 +97,7 @@ public class FileController {
     }
 
     @RequestMapping(method = DELETE, value = {"/{title}", "/{username}/{title}"})
-    public ResponseEntity<?> deleteFileUser(@PathVariable String username, @PathVariable String title) {
+    public ResponseEntity<?> deleteFileUser(@PathVariable @Nullable String username, @PathVariable @NonNull String title) {
         try {
             User loggedUser = getLoggedUser();
             if (username == null) {
