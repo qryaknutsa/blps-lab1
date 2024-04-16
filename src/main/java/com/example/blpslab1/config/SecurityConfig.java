@@ -32,8 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("api/auth/**")
                                 .permitAll()
-                                .requestMatchers("/api/user/**").hasAuthority(USER.name())
-                                .requestMatchers("api/admin/**").hasAuthority(ADMIN.name())
+                                .requestMatchers("/api/user/create", "/api/user/all-users", "api/files/all").hasAuthority(ADMIN.name())
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))

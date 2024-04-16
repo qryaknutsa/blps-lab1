@@ -1,9 +1,10 @@
 package com.example.blpslab1.controller;
 
+import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.model.subModel.FilePath;
 import com.example.blpslab1.model.StoredFile;
-import com.example.blpslab1.dto.ResponseStatus;
+import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.service.FileService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -13,9 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
 
-import static com.example.blpslab1.dto.ResponseStatus.*;
+import static com.example.blpslab1.model.subModel.Role.ADMIN;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @RequestMapping("api/files")
@@ -23,101 +24,96 @@ import static com.example.blpslab1.dto.ResponseStatus.*;
 public class FileController {
     private final FileService fileService;
 
-    //USER PART
-    @GetMapping("/user/all")
-    public ResponseEntity<List<String>> getAllUsersFiles() {
-        String username = getLoggedUsername();
-        return ResponseEntity.ok().body(fileService.getAllFilesName(username));
-    }
-
-    @PostMapping("/user/upload")
-    public ResponseEntity<String> uploadFileUser(@RequestBody FilePath filePath) throws IOException {
-        User user = getLoggedUser();
-        ResponseStatus response = fileService.upload(user.getUsername(), filePath.getFilePath());
-        if (response == GOOD)
-            return ResponseEntity.ok("Файл загружен");
-        else if (response == ALREADY_EXISTS)
-            return ResponseEntity.ok("Файл не загружен. Файл с таким именем уже загружен");
-        else if (response == NOT_FOUND)
-            return ResponseEntity.ok("Файл не загружен. Файл не найден");
-        else return ResponseEntity.ok("Файл не загружен. Войдите в систему");
-    }
-
-    @GetMapping(value = "/user/{title}")
-    public ResponseEntity<?> getFileUser(@PathVariable String title) {
+    //    @GetMapping("/all-by-user/{username}")
+    @RequestMapping(method = GET, value = {"/all-by-user", "/all-by-user/{username}"})
+    public ResponseEntity<?> getAllFiles(@PathVariable String username) {
         try {
-            String username = getLoggedUsername();
-            StoredFile file = fileService.getStoredFile(username, title);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/plain"));
-            headers.setContentDispositionFormData("attachment", file.getTitle());
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(file.getData().getData());
-        } catch (NullPointerException e) {
-            return ResponseEntity.internalServerError().body(null);
+            User loggedUser = getLoggedUser();
+            if (username == null)
+                return ResponseEntity.ok().body(fileService.getAllFilesNameByUsername(loggedUser.getUsername()));
+            else {
+                if (loggedUser.getRole() == ADMIN) {
+                    return ResponseEntity.ok().body(fileService.getAllFilesNameByUsername(username));
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/user/{title}")
-    public ResponseEntity<String> deleteFileUser(@PathVariable String title) {
-        String username = getLoggedUsername();
-        ResponseStatus status = fileService.deleteFile(username, title);
-        if (status == GOOD) return ResponseEntity.ok("Файл удален");
-        else if (status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
-        else return ResponseEntity.ok("Файл не удален. Войдите в систему");
-    }
-
-
-    //ADMIN PART
-    @GetMapping("/admin/all")
-    public ResponseEntity<List<String>> getAllFiles() {
-        String username = getLoggedUsername();
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllUsersFiles() {
         return ResponseEntity.ok().body(fileService.getAllFilesName());
     }
 
-    @PostMapping("/admin/upload/{username}")
-    public ResponseEntity<String> uploadFileUser(@PathVariable String username, @RequestBody FilePath filePath) throws IOException {
-        ResponseStatus response = fileService.upload(username, filePath.getFilePath());
-        if (response == GOOD)
-            return ResponseEntity.ok("Файл загружен");
-        else if (response == ALREADY_EXISTS)
-            return ResponseEntity.ok("Файл не загружен. Файл с таким именем уже загружен");
-        else if (response == NOT_FOUND)
-            return ResponseEntity.ok("Файл не загружен. Файл не найден");
-        else return ResponseEntity.ok("Файл не загружен. Войдите в систему");
-    }
-
-    @GetMapping("/admin/{username}/{title}")
-    public ResponseEntity<?> getFileUser(@PathVariable String username, @PathVariable String title) {
-        try{
-            StoredFile file = fileService.getStoredFile(username, title);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/plain"));
-            headers.setContentDispositionFormData("attachment", file.getTitle());
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(file.getData().getData());
-        } catch(NullPointerException e){
-            return ResponseEntity.internalServerError().body(null);
+    @RequestMapping(method = POST, value = {"/upload", "/upload/{username}"})
+    public ResponseEntity<?> uploadFileUser(@PathVariable String username, @RequestBody FilePath filePath) throws IOException {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                fileService.upload(loggedUser.getUsername(), filePath.getFilePath());
+                return ResponseEntity.ok().body("Файл загружен");
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    fileService.upload(username, filePath.getFilePath());
+                    return ResponseEntity.ok().body("Файл загружен");
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | FileAlreadyExistsException | InterruptedException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/admin/{username}/{title}")
-    public ResponseEntity<String> deleteFileUser(@PathVariable String username, @PathVariable String title) {
-        ResponseStatus status = fileService.deleteFile(username, title);
-        if (status == GOOD) return ResponseEntity.ok("Файл удален");
-        else if (status == NOT_FOUND) return ResponseEntity.ok("Файл не был найден");
-        else return ResponseEntity.ok("Файл не удален. Войдите в систему");
+    @RequestMapping(method = GET, value = {"/file/{title}", "/file/{username}/{title}"})
+    public ResponseEntity<?> getUserFile(@PathVariable String username, @PathVariable String title) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                StoredFile file = fileService.getStoredFile(loggedUser.getUsername(), title);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType("text/plain"));
+                headers.setContentDispositionFormData("attachment", file.getTitle());
+
+                return ResponseEntity.ok()
+                        .headers(headers)
+                        .body(file.getData().getData());
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    StoredFile file = fileService.getStoredFile(username, title);
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.parseMediaType("text/plain"));
+                    headers.setContentDispositionFormData("attachment", file.getTitle());
+
+                    return ResponseEntity.ok()
+                            .headers(headers)
+                            .body(file.getData().getData());
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | FileAlreadyExistsException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
     }
 
+    @RequestMapping(method = DELETE, value = {"/{title}", "/{username}/{title}"})
+    public ResponseEntity<?> deleteFileUser(@PathVariable String username, @PathVariable String title) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                fileService.deleteFile(loggedUser.getUsername(), title);
+                return ResponseEntity.ok().body("Файл удален");
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    fileService.deleteFile(username, title);
+                    return ResponseEntity.ok().body("Файл загружен");
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | FileAlreadyExistsException  e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+    }
 
     private User getLoggedUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    }
-
-    private String getLoggedUsername() {
-        return getLoggedUser().getUsername();
     }
 
 }

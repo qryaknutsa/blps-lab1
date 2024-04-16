@@ -1,27 +1,21 @@
 package com.example.blpslab1.service;
 
-import com.example.blpslab1.dto.ResponseStatus;
+import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.StoredFile;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.Binary;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-import static com.example.blpslab1.dto.ResponseStatus.*;
 import static java.lang.Thread.sleep;
 
 @Service
@@ -37,65 +31,52 @@ public class FileService {
                 .collect(Collectors.toList());
     }
 
-    public List<String> getAllFilesName(String username) {
+
+    //UserNotFoundException
+    public List<String> getAllFilesNameByUsername(String username) {
+        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         return fileRepo.findAllByUsername(username).stream()
                 .map(StoredFile::getTitle)
                 .collect(Collectors.toList());
 
     }
 
-    public ResponseStatus upload(String username, String filePath) throws IOException {
+    //FileAlreadyExistsException
+    //UserNotFoundException
+    public void upload(String username, String filePath) throws IOException, InterruptedException {
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        Path path = Paths.get(filePath);
+        String fileName = path.getFileName().toString();
+        Binary data = new Binary(Files.readAllBytes(path));
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
-            ;
-            Path path = Paths.get(filePath);
-            String fileName = path.getFileName().toString();
-            Binary data = new Binary(Files.readAllBytes(path));
-            try {
-                fileRepo.findStoredFileByTitleAndUsername(fileName, username).orElseThrow(NoSuchElementException::new);
-                return ALREADY_EXISTS;
-            } catch (NoSuchElementException e) {
-                StoredFile storedFile = new StoredFile(fileName, data, username);
-                fileRepo.save(storedFile);
-                if (!user.getSubscription()) sleep(5000);
-                return GOOD;
-            }
-        } catch (NoSuchElementException | InterruptedException e) {
-            return NOT_FOUND;
+            fileRepo.findStoredFileByTitleAndUsername(fileName, username).orElseThrow(FileNotFoundException::new);
+            throw new FileAlreadyExistsException("Файл с таким именем уже существует");
+        } catch (FileNotFoundException e) {
+            StoredFile storedFile = new StoredFile(fileName, data, username);
+            fileRepo.save(storedFile);
+            if (!user.getSubscription()) sleep(5000);
         }
+
+
     }
 
-//    public Object getStoredFile(String username, String title) {
-//        try {
-//            StoredFile file = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(NoSuchElementException::new);
-//            byte[] data = file.getData().getData();
-//            try (ByteArrayInputStream bis = new ByteArrayInputStream(data);
-//                 ObjectInputStream ois = new ObjectInputStream(bis)) {
-//                return ois.readObject();
-//            } catch (IOException | ClassNotFoundException e) {
-//                return null;
-//            }
-//        } catch (NoSuchElementException e) {
-//            return null;
-//        }
-//    }
 
+    //FileAlreadyExistException
+    //UserNotFoundException
     public StoredFile getStoredFile(String username, String title) {
-        try {
-            return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(NoSuchElementException::new);
-        } catch (NoSuchElementException e) {
-            return null;
-        }
-    }
-
-    public ResponseStatus deleteFile(String username, String title) {
-        try {
-            StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(NoSuchElementException::new);
-            fileRepo.delete(storedFile);
-            return GOOD;
-        } catch (NoSuchElementException e) {
-            return NOT_FOUND;
-        }
+        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
 
     }
+
+    //FileAlreadyExistException
+    //UserNotFoundException
+    public void deleteFile(String username, String title) {
+        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
+        fileRepo.delete(storedFile);
+
+    }
+
+
 }

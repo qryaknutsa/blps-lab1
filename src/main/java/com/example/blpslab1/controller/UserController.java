@@ -1,7 +1,8 @@
 package com.example.blpslab1.controller;
 
+import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.dto.ResponseStatus;
+import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.model.subModel.Wallet;
 import com.example.blpslab1.service.UserService;
 
@@ -14,189 +15,186 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.example.blpslab1.dto.ResponseStatus.*;
+import static com.example.blpslab1.model.subModel.Role.ADMIN;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 @AllArgsConstructor
 public class UserController {
     private final UserService userService;
 
-
-    //USER PART
-
-    @GetMapping("/user")
-    public ResponseEntity<User> getUser() {
+    @PostMapping("/create")
+    public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
-            String username = getLoggedUsername();
-            User user = userService.getUser(username);
+            userService.saveUser(user);
             return ResponseEntity.ok().body(user);
-        } catch (NullPointerException e) {
-            return ResponseEntity.internalServerError().body(null);
+        } catch (UserAlreadyExistsException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/user/delete")
-    public ResponseEntity<Void> delete() {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.delete(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-    @PutMapping("/user/buy-sub")
-    public ResponseEntity<Void> buySub() throws SystemException {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.buySub(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-    @PutMapping("/user/cancel-sub")
-    public ResponseEntity<Void> cancelSub() throws SystemException {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.cancelSub(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-
-    @PutMapping("/user/change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody User user) {
-        ResponseStatus response = userService.changePassword(user);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-    @PutMapping("/user/change-username")
-    public ResponseEntity<Void> changeUsername(@RequestBody User user) {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.changeUsername(username, user);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-
-    @PutMapping("/user/put-money")
-    public ResponseEntity<Void> putMoney(@RequestBody Wallet wallet) throws SystemException {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.putMoney(username, wallet.getSum());
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-    @PutMapping("/user/withdraw-money")
-    public ResponseEntity<Void> withdrawMoney(@RequestBody Wallet wallet) throws SystemException {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.withdrawMoney(username, wallet.getSum());
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-
-
-    // ADMIN PART
-
-    @PostMapping("/admin/create")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        try {
-            ResponseStatus status = userService.saveUser(user);
-            if (status == ALREADY_EXISTS) throw new NullPointerException();
-            return ResponseEntity.ok().body(user);
-        } catch (NullPointerException e) {
-            return ResponseEntity.internalServerError().body(null);
-        }
-    }
-
-    @GetMapping("/admin/user/{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
-        try {
-            User user = userService.getUser(username);
-            return ResponseEntity.ok().body(user);
-        } catch (NullPointerException e) {
-            return ResponseEntity.internalServerError().body(null);
-        }
-    }
-
-    @GetMapping("/admin/all-users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    @GetMapping("/all-users")
+    public ResponseEntity<?> getAllUsers() {
         try {
             List<User> users = userService.getAllUsers();
             return ResponseEntity.ok().body(users);
         } catch (NullPointerException e) {
-            return ResponseEntity.internalServerError().body(null);
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
 
-    @DeleteMapping("/admin/delete/{username}")
-    public ResponseEntity<Void> delete(@PathVariable String username) {
-        ResponseStatus response = userService.delete(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+    @RequestMapping(method = GET, value = {"", "/{username}"})
+    public ResponseEntity<?> getUser(@PathVariable String username) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null)
+                return ResponseEntity.ok().body(loggedUser);
+            else {
+                if (loggedUser.getRole() == ADMIN) {
+                    User user = userService.getUser(username);
+                    return ResponseEntity.ok().body(user);
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (NullPointerException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());        }
     }
 
-    @PutMapping("/admin/buy-sub/{username}")
-    public ResponseEntity<Void> buySub(@PathVariable String username) throws SystemException {
-        ResponseStatus response = userService.buySub(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+    @RequestMapping(method = PUT, value = {"/change-password", "/change-password/{username}"})
+    public ResponseEntity<?> changeAdminPassword(@PathVariable String username, @RequestBody User user) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.changePassword(user);
+                return ResponseEntity.ok().build();
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.changePassword(user);
+                    return ResponseEntity.ok().build();
+                } else
+                    return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | UserAlreadyExistsException  e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+
     }
 
-    @PutMapping("/admin/cancel-sub/{username}")
-    public ResponseEntity<Void> cancelSub(@PathVariable String username) throws SystemException {
-        ResponseStatus response = userService.cancelSub(username);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+    @RequestMapping(method = PUT, value = {"/change-username/{old_username}"})
+    public ResponseEntity<?> changeAdminUsername(@PathVariable String old_username, @RequestBody User user) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (old_username.equals(loggedUser.getUsername())) {
+                userService.changeUsername(old_username, user);
+                return ResponseEntity.ok().build();
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.changeUsername(old_username, user);
+                    return ResponseEntity.ok().build();
+                } else
+                    return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | UserAlreadyExistsException  e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+    }
+
+    @RequestMapping(method = DELETE, value = {"/delete", "/delete/{username}"})
+    public ResponseEntity<?> delete(@PathVariable String username) {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.delete(loggedUser.getUsername());
+                return ResponseEntity.ok().body(loggedUser);
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.delete(username);
+                    return ResponseEntity.ok().build();
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+    }
+
+    @RequestMapping(method = PUT, value = {"/buy-sub", "/buy-sub/{username}"})
+    public ResponseEntity<?> buySub(@PathVariable String username) throws SystemException {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.buySub(loggedUser.getUsername());
+                return ResponseEntity.ok().body(loggedUser);
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.buySub(username);
+                    return ResponseEntity.ok().build();
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException |
+                 SubAlreadyExistsException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+    }
+
+    @RequestMapping(method = PUT, value = {"/cancel-sub", "/cancel-sub/{username}"})
+    public ResponseEntity<?> cancelSub(@PathVariable String username) throws SystemException {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.cancelSub(loggedUser.getUsername());
+                return ResponseEntity.ok().body(loggedUser);
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.cancelSub(username);
+                    return ResponseEntity.ok().build();
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException |
+                 SubAlreadyExistsException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
+
     }
 
 
-    @PutMapping("/admin/change-password")
-    public ResponseEntity<Void> changeAdminPassword(@RequestBody User user) {
-        ResponseStatus response = userService.changePassword(user);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+    @RequestMapping(method = PUT, value = {"/put-money", "/put-money/{username}"})
+    public ResponseEntity<?> putMoney(@PathVariable String username, @RequestBody Wallet wallet) throws SystemException {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.putMoney(loggedUser.getUsername(), wallet.getSum());
+                return ResponseEntity.ok().body(loggedUser);
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.putMoney(username, wallet.getSum());
+                    return ResponseEntity.ok().build();
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
     }
 
-    @PutMapping("/admin/change-username")
-    public ResponseEntity<Void> changeAdminUsername(@RequestBody User user) {
-        String username = getLoggedUsername();
-        ResponseStatus response = userService.changeUsername(username, user);
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
+    @RequestMapping(method = PUT, value = {"/withdraw-money", "/withdraw-money/{username}"})
+    public ResponseEntity<?> withdrawMoney(@PathVariable String username, @RequestBody Wallet wallet) throws Exception {
+        try {
+            User loggedUser = getLoggedUser();
+            if (username == null) {
+                userService.withdrawMoney(loggedUser.getUsername(), wallet.getSum());
+                return ResponseEntity.ok().body(loggedUser);
+            } else {
+                if (loggedUser.getRole() == ADMIN) {
+                    userService.withdrawMoney(username, wallet.getSum());
+                    return ResponseEntity.ok().build();
+                } else return ResponseEntity.status(403).body("Нет доступа");
+            }
+        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
+            return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
+        }
     }
 
-    @PutMapping("/admin/put-money/{username}")
-    public ResponseEntity<Void> putMoney(@PathVariable String username, @RequestBody Wallet wallet) throws SystemException {
-        ResponseStatus response = userService.putMoney(username, wallet.getSum());
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-    @PutMapping("/admin/withdraw-money/{username}")
-    public ResponseEntity<Void> withdrawMoney(@PathVariable String username, @RequestBody Wallet wallet) throws SystemException {
-        ResponseStatus response = userService.withdrawMoney(username, wallet.getSum());
-        if (response == GOOD)
-            return ResponseEntity.ok().build();
-        else return ResponseEntity.internalServerError().build();
-    }
-
-
-    private String getLoggedUsername() {
-        User a = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return a.getUsername();
+    private User getLoggedUser() {
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
 }

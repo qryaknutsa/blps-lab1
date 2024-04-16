@@ -2,8 +2,9 @@ package com.example.blpslab1.service;
 
 import bitronix.tm.TransactionManagerServices;
 import bitronix.tm.BitronixTransactionManager;
-import com.example.blpslab1.dto.ResponseStatus;
+import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
+import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
 
@@ -18,9 +19,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.*;
 import java.util.List;
-import java.util.NoSuchElementException;
-
-import static com.example.blpslab1.dto.ResponseStatus.*;
 
 
 @Service
@@ -33,78 +31,74 @@ public class UserService implements UserDetailsService {
 
 
     public List<User> getAllUsers() {
-        try {
-            return userRepo.findAll();
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+        return userRepo.findAll();
     }
 
+
+    //UserNotFoundException
     public User getUser(String username) {
-        try {
-            return userRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).findFirst().get();
-        } catch (NoSuchElementException | NullPointerException e) {
-            return null;
-        }
+        return userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+
     }
 
-    public ResponseStatus saveUser(User user){
-        try{
-            userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
-            return ALREADY_EXISTS;
-        } catch (NoSuchElementException e){
+
+    //UserAlreadyExistException
+    public void saveUser(User user) {
+        try {
+            userRepo.findUserByUsername(user.getUsername()).orElseThrow(UserNotFoundException::new);
+            throw new UserAlreadyExistsException("User с таким username уже существует, user не сохранен");
+        } catch (UserNotFoundException e) {
+            if (user.getRole() == Role.ADMIN) user.setSubscription(true);
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             userRepo.save(user);
-            return GOOD;
         }
     }
 
 
-    public ResponseStatus delete(String username) {
+    //UserNotFoundException
+    public void delete(String username) {
         User user;
+        user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        userRepo.delete(user);
+        fileRepo.deleteAll(fileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
+
+    }
+
+    //UserNotFoundException
+    public void changePassword(User user) {
+        User user1 = userRepo.findUserByUsername(user.getUsername()).orElseThrow(UserNotFoundException::new);
+        user1.setPassword(passwordEncoder.encode(user.getPassword()));
+        userRepo.save(user1);
+
+    }
+
+    //UserNotFoundException -- oldUsername
+    //UserAlreadyExistException
+    public void changeUsername(String oldUsername, User user) {
+        User userTest = userRepo.findUserByUsername(oldUsername).orElseThrow(UserNotFoundException::new);
         try {
-            user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
-            userRepo.delete(user);
-            fileRepo.deleteAll(fileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(username)).toList());
-            return GOOD;
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
+            userRepo.findUserByUsername(user.getUsername()).orElseThrow(UserNotFoundException::new);
+            throw new UserAlreadyExistsException("User с таким username уже существует, username пользователя под именем " + oldUsername + " не получилось");
+        } catch (UserNotFoundException e) {
+            userTest.setUsername(user.getUsername());
+            userRepo.save(userTest);
         }
     }
 
-    public ResponseStatus changePassword(User user) {
-        try {
-            User user1 = userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
-            user1.setPassword(passwordEncoder.encode(user.getPassword()));
-            userRepo.save(user1);
-            return GOOD;
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
-        }
-    }
-
-    public ResponseStatus changeUsername(String oldUsername, User user) {
-        try {
-            userRepo.findUserByUsername(user.getUsername()).orElseThrow(NoSuchElementException::new);
-            return ALREADY_EXISTS;
-        } catch (NoSuchElementException e) {
-            User user1 = userRepo.findUserByUsername(oldUsername).orElseThrow();
-            user1.setUsername(user.getUsername());
-            userRepo.save(user1);
-            return GOOD;
-        }
-    }
-
-
-    public ResponseStatus buySub(String username) throws SystemException {
+    //UserNotFoundException
+    //OutOfBalanceException
+    //TransactionFailedException
+    //SubAlreadyExistsException
+    public void buySub(String username) throws SystemException {
         BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
 
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             if (user.getSubscription()) {
-                return ALREADY_EXISTS;
+                throw new SubAlreadyExistsException("Подписка уже куплена");
             } else {
-                if (user.getWallet() < subscription_price) return OUT_OF_BALANCE;
+                if (user.getWallet() < subscription_price)
+                    throw new OutOfBalanceException("Не хватает денег");
                 else {
                     tm.begin();
                     user.setWallet(user.getWallet() - subscription_price);
@@ -112,74 +106,83 @@ public class UserService implements UserDetailsService {
                     userRepo.save(user);
                     tm.commit();
                 }
-                return GOOD;
             }
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
-        } catch (Exception e) {
+        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
             tm.rollback();
+            throw new TransactionFailedException("Подписка не оформлена");
+        } catch (RollbackException e) {
+            throw new TransactionFailedException("Подписка не оформлена, откат не произошел");
         }
-        return NOT_FOUND;
     }
 
-
-    public ResponseStatus cancelSub(String username) throws SystemException {
+    //UserNotFoundException
+    //OutOfBalanceException
+    //TransactionFailedException
+    public void cancelSub(String username) throws SystemException {
         BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             tm.begin();
             user.setSubscription(false);
             userRepo.save(user);
             tm.commit();
-            return GOOD;
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
-        } catch (Exception e) {
+        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
             tm.rollback();
+            throw new TransactionFailedException("Подписка не отменена");
+        } catch (RollbackException e) {
+            throw new TransactionFailedException("Подписка не куплена, откат не произошел");
         }
-        return NOT_FOUND;
     }
 
-    public ResponseStatus putMoney(String username, Double sum) throws SystemException  {
+    //UserNotFoundException
+    //OutOfBalanceException
+    //TransactionFailedException
+    public void putMoney(String username, Double sum) throws SystemException {
         BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             tm.begin();
             user.setWallet(user.getWallet() + sum);
             userRepo.save(user);
             tm.commit();
-            return GOOD;
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
-        } catch (Exception e) {
+        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
             tm.rollback();
+            throw new TransactionFailedException("Деньги нне вышло положить на счёт");
+        } catch (RollbackException e) {
+            throw new TransactionFailedException("Деньги не вышло положить на счёт, откат не произошел");
         }
-        return NOT_FOUND;
     }
 
-    public ResponseStatus withdrawMoney(String username, Double sum) throws SystemException {
+    //UserNotFoundException
+    //OutOfBalanceException
+    //TransactionFailedException
+    public void withdrawMoney(String username, Double sum) throws SystemException {
         BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         try {
-            User user = userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
             tm.begin();
             user.setWallet(user.getWallet() - sum);
             userRepo.save(user);
+//        method();
+            userRepo.save(user);
             tm.commit();
-            return GOOD;
-        } catch (NoSuchElementException | NullPointerException e) {
-            return NOT_FOUND;
-        } catch (Exception e) {
+        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
             tm.rollback();
+            throw new TransactionFailedException("Деньги не снялись со счёта");
+        } catch (RollbackException e) {
+            throw new TransactionFailedException("Деньги не снялись со счёта, откат не произошел");
         }
-        return NOT_FOUND;
+    }
 
+    void method() {
+        throw new RuntimeException();
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
-            return userRepo.findUserByUsername(username).orElseThrow(NoSuchElementException::new);
-        } catch (NoSuchElementException e) {
+            return userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        } catch (UserNotFoundException e) {
             throw new UsernameNotFoundException("User not found");
         }
     }
