@@ -1,16 +1,12 @@
 package com.example.blpslab1.model;
 
 import com.example.blpslab1.model.subModel.Role;
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.util.Collection;
 import java.util.List;
 
@@ -18,43 +14,50 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document
+@Entity
+@Table(name = "cloud_user")
 public class User implements UserDetails {
     @Id
-    private String id;
-    @Indexed(unique = true)
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "username", nullable = false)
     private String username;
+    @Column(name = "password", nullable = false)
     private String password;
+    @Column(name = "role_name", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role roleName;
+    @Column(name = "subscription", nullable = false)
     private Boolean subscription = false;
+    @Column(name = "wallet", nullable = false)
     private Double wallet = (double) 0;
 
-    public User(String username, String password, Role role, Boolean subscription, Double wallet){
+    public User(String username, String password, Role roleName, Boolean subscription, Double wallet){
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roleName = roleName;
         this.subscription = subscription;
         this.wallet = wallet;
     }
 
 
-    public User(String username, String password, Role role){
+    public User(String username, String password, Role roleName){
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roleName = roleName;
     }
 
     public User(String username, String password){
         this.username = username;
         this.password = password;
-        this.role = Role.USER;
+        this.roleName = Role.USER;
     }
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority(roleName.name()));
     }
 
     @Override

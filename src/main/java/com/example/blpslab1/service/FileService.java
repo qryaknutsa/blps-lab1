@@ -6,7 +6,6 @@ import com.example.blpslab1.model.User;
 import com.example.blpslab1.repo.FileRepo;
 import com.example.blpslab1.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
-import org.bson.types.Binary;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -47,7 +46,7 @@ public class FileService {
         User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         Path path = Paths.get(filePath);
         String fileName = path.getFileName().toString();
-        Binary data = new Binary(Files.readAllBytes(path));
+        String data = Files.readString(path);
         try {
             fileRepo.findStoredFileByTitleAndUsername(fileName, username).orElseThrow(FileNotFoundException::new);
             throw new FileAlreadyExistsException("Файл с таким именем уже существует");

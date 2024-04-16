@@ -1,9 +1,9 @@
 package com.example.blpslab1.service;
 
-import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.dto.AuthUserDTO;
 import com.example.blpslab1.config.SecurityConfig;
 import com.example.blpslab1.model.User;
+import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.repo.UserRepo;
 
 
@@ -31,7 +31,7 @@ public class AuthenticationService {
         if (repo.findUserByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Login already exists");
         }
-        User user = new User(username, SecurityConfig.passwordEncoder().encode(password));
+        User user = new User(username, SecurityConfig.passwordEncoder().encode(password), Role.USER);
         repo.save(user);
         return new AuthUserDTO(user);
 

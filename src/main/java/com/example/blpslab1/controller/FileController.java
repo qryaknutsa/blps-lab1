@@ -4,7 +4,6 @@ import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.model.subModel.FilePath;
 import com.example.blpslab1.model.StoredFile;
-import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.service.FileService;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -34,7 +33,7 @@ public class FileController {
             if (username == null)
                 return ResponseEntity.ok().body(fileService.getAllFilesNameByUsername(loggedUser.getUsername()));
             else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     return ResponseEntity.ok().body(fileService.getAllFilesNameByUsername(username));
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
@@ -56,7 +55,7 @@ public class FileController {
                 fileService.upload(loggedUser.getUsername(), filePath.getFilePath());
                 return ResponseEntity.ok().body("Файл загружен");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     fileService.upload(username, filePath.getFilePath());
                     return ResponseEntity.ok().body("Файл загружен");
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -78,9 +77,9 @@ public class FileController {
 
                 return ResponseEntity.ok()
                         .headers(headers)
-                        .body(file.getData().getData());
+                        .body(file.getData());
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     StoredFile file = fileService.getStoredFile(username, title);
                     HttpHeaders headers = new HttpHeaders();
                     headers.setContentType(MediaType.parseMediaType("text/plain"));
@@ -88,7 +87,7 @@ public class FileController {
 
                     return ResponseEntity.ok()
                             .headers(headers)
-                            .body(file.getData().getData());
+                            .body(file.getData());
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
         } catch (UserNotFoundException | FileAlreadyExistsException e) {
@@ -104,7 +103,7 @@ public class FileController {
                 fileService.deleteFile(loggedUser.getUsername(), title);
                 return ResponseEntity.ok().body("Файл удален");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     fileService.deleteFile(username, title);
                     return ResponseEntity.ok().body("Файл загружен");
                 } else return ResponseEntity.status(403).body("Нет доступа");

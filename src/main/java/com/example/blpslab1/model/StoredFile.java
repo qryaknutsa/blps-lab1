@@ -3,24 +3,27 @@ package com.example.blpslab1.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.types.Binary;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+
+import jakarta.persistence.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document
+@Entity
+@Table(name = "stored_file")
 public class StoredFile {
     @Id
-    private String id;
+    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "title", nullable = false)
     private String title;
-    private Binary data;
+    @Column(name = "data", nullable = false)
+    private String data;
+    @Column(name = "username", nullable = false)
     private String username;
 
-    public StoredFile(String title, Binary data, String username){
+    public StoredFile(String title, String data, String username) {
         this.title = title;
         this.data = data;
         this.username = username;

@@ -3,7 +3,6 @@ package com.example.blpslab1.controller;
 import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.model.subModel.Role;
 import com.example.blpslab1.model.subModel.Wallet;
 import com.example.blpslab1.service.UserService;
 
@@ -54,7 +53,7 @@ public class UserController {
             if (username == null)
                 return ResponseEntity.ok().body(loggedUser);
             else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     User user = userService.getUser(username);
                     return ResponseEntity.ok().body(user);
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -72,7 +71,7 @@ public class UserController {
                 userService.changePassword(user);
                 return ResponseEntity.ok().body("Пароль успешно изменено");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.changePassword(user);
                     return ResponseEntity.ok().body("Пароль успешно изменено");
                 } else
@@ -92,7 +91,7 @@ public class UserController {
                 userService.changeUsername(old_username, user);
                 return ResponseEntity.ok().body("Имя пользователя успешно изменено");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.changeUsername(old_username, user);
                     return ResponseEntity.ok().body("Имя пользователя успешно изменено");
                 } else
@@ -111,7 +110,7 @@ public class UserController {
                 userService.delete(loggedUser.getUsername());
                 return ResponseEntity.ok().body("Аккаунт " + loggedUser.getUsername() + " успешно удалён");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.delete(username);
                     return ResponseEntity.ok().body("Аккаунт " + username + " успешно удалён");
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -129,7 +128,7 @@ public class UserController {
                 userService.buySub(loggedUser.getUsername());
                 return ResponseEntity.ok().body("Подписка на аккаунте " + loggedUser.getUsername() + " успешно оформлена");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.buySub(username);
                     return ResponseEntity.ok().body("Подписка на аккаунте " + username + " успешно оформлена");
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -148,7 +147,7 @@ public class UserController {
                 userService.cancelSub(loggedUser.getUsername());
                 return ResponseEntity.ok().body("Подписка на аккаунте " + loggedUser.getUsername() + " успешно отменена");
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.cancelSub(username);
                     return ResponseEntity.ok().body("Подписка на аккаунте " + username + " успешно отменена");
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -169,7 +168,7 @@ public class UserController {
                 userService.putMoney(loggedUser.getUsername(), wallet.getSum());
                 return ResponseEntity.ok().body("Кошелёк успешно пополнился в размере " + wallet.getSum() + " на счету " + loggedUser.getUsername());
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.putMoney(username, wallet.getSum());
                     return ResponseEntity.ok().body("Кошелёк успешно пополнился в размере " + wallet.getSum() + " на счету " + username);
                 } else return ResponseEntity.status(403).body("Нет доступа");
@@ -187,7 +186,7 @@ public class UserController {
                 userService.withdrawMoney(loggedUser.getUsername(), wallet.getSum());
                 return ResponseEntity.ok().body("Деньги в размере " + wallet.getSum() + " успешно снялись со счёта " + loggedUser.getUsername());
             } else {
-                if (loggedUser.getRole() == ADMIN) {
+                if (loggedUser.getRoleName() == ADMIN) {
                     userService.withdrawMoney(username, wallet.getSum());
                     return ResponseEntity.ok().body("Деньги в размере " + wallet.getSum() + " успешно снялись со счёта " + username);
                 } else return ResponseEntity.status(403).body("Нет доступа");

@@ -2,23 +2,24 @@ package com.example.blpslab1.service;
 
 import bitronix.tm.TransactionManagerServices;
 import bitronix.tm.BitronixTransactionManager;
+
 import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
 import com.example.blpslab1.model.subModel.Role;
-import com.example.blpslab1.repo.FileRepo;
-import com.example.blpslab1.repo.UserRepo;
+import com.example.blpslab1.repo.*;
 
 
+import javax.transaction.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 
-import javax.transaction.*;
 import java.util.List;
 
 
@@ -34,7 +35,6 @@ public class UserService implements UserDetailsService {
     public List<User> getAllUsers() {
         return userRepo.findAll();
     }
-
 
     //UserNotFoundException
     public User getUser(String username) {
@@ -90,10 +90,9 @@ public class UserService implements UserDetailsService {
     //OutOfBalanceException
     //TransactionFailedException
     //SubAlreadyExistsException
-    public void buySub(String username) throws SystemException {
+    public void buySub(String username) throws SystemException, javax.transaction.SystemException {
         BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
         User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-
         try {
             if (user.getSubscription()) {
                 throw new SubAlreadyExistsException("Подписка уже куплена");
@@ -108,12 +107,17 @@ public class UserService implements UserDetailsService {
                     tm.commit();
                 }
             }
-        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
+        }catch (Exception e){
             tm.rollback();
             throw new TransactionFailedException("Подписка не оформлена");
-        } catch (RollbackException e) {
-            throw new TransactionFailedException("Подписка не оформлена, откат не произошел");
         }
+//        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
+//            tm.rollback();
+//            throw new TransactionFailedException("Подписка не оформлена");
+//        } catch (RollbackException | javax.transaction.NotSupportedException e) {
+//            tm.rollback();
+//            throw new TransactionFailedException("Подписка не оформлена, откат не произошел");
+//        }
     }
 
     //UserNotFoundException
@@ -157,21 +161,16 @@ public class UserService implements UserDetailsService {
     //UserNotFoundException
     //OutOfBalanceException
     //TransactionFailedException
+
+    @Transactional
     public void withdrawMoney(String username, Double sum) throws SystemException {
-        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
         User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         try {
-            tm.begin();
             user.setWallet(user.getWallet() - sum);
             userRepo.save(user);
-//        method();
-            userRepo.save(user);
-            tm.commit();
-        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
-            tm.rollback();
+            method();
+        }catch (Exception e) {
             throw new TransactionFailedException("Деньги не снялись со счёта");
-        } catch (RollbackException e) {
-            throw new TransactionFailedException("Деньги не снялись со счёта, откат не произошел");
         }
     }
 
