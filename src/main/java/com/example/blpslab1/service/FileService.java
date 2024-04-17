@@ -67,10 +67,13 @@ public class FileService {
         String data = Files.readString(path);
         try {
             fileRepo.findStoredFileByTitleAndUsername(fileName, message.getUsername()).orElseThrow(FileNotFoundException::new);
+            if (!message.isSubscription()) sleep(5000);
+            jmsTemplate.convertAndSend(queueName + "SaveFile-response", new Message("Файл " + fileName + " не найден"));
         } catch (FileNotFoundException e) {
             StoredFile storedFile = new StoredFile(fileName, data, message.getUsername());
             if (!message.isSubscription()) sleep(5000);
             fileRepo.save(storedFile);
+            jmsTemplate.convertAndSend(queueName + "SaveFile-response", new Message("Файл " + fileName + " сохранен"));
         }
 
 
@@ -90,14 +93,19 @@ public class FileService {
     //UserNotFoundException
     @JmsListener(destination = queueName + "DeleteFile-request")
     public void deleteFile(Message message) {
-        StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(message.getTitle(), message.getUsername()).orElseThrow(FileNotFoundException::new);
-        fileRepo.delete(storedFile);
+        try {
+            StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(message.getTitle(), message.getUsername()).orElseThrow(FileNotFoundException::new);
+            fileRepo.delete(storedFile);
+            jmsTemplate.convertAndSend(queueName + "DeleteFile-response", new Message("Файл " + message.getTitle() + " удалён"));
+        }catch (FileNotFoundException e){
+            jmsTemplate.convertAndSend(queueName + "DeleteFile-response", new Message("Файл " + message.getTitle() + " не найден"));
+        }
     }
 
     @JmsListener(destination = queueName + "DeleteAllFilesByUsername-request")
     public void deleteAllFilesByUsername(Message message) {
         fileRepo.deleteAll(fileRepo.findAll().stream().filter(the_user -> the_user.getUsername().equals(message.getUsername())).toList());
-
+        jmsTemplate.convertAndSend(queueName + "DeleteAllFilesByUsername-response", new Message("Все файлы пользователя " + message.getUsername() + " удалены"));
     }
 
 }
