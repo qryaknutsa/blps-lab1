@@ -7,6 +7,7 @@ import com.example.blpslab1.serviceConnection.Message;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -85,5 +86,20 @@ public class FileService {
         jmsTemplate.convertAndSend(queueName + "DeleteAllFilesByUsername-request", request);
     }
 
+
+    @JmsListener(destination = queueName + "SaveFile-response")
+    public void upload(Message message) {
+        System.out.println(message.getUsername());
+    }
+
+    @JmsListener(destination = queueName + "DeleteFile-response")
+    public void deleteFile(Message message) {
+        System.out.println(message.getUsername());
+    }
+
+    @JmsListener(destination = queueName + "DeleteAllFilesByUsername-response")
+    public void deleteAllFilesByUsername(Message message) {
+        System.out.println(message.getUsername());
+    }
 
 }

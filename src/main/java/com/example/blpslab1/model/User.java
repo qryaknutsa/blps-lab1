@@ -7,6 +7,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,6 +32,8 @@ public class User implements UserDetails {
     private Role roleName;
     @Column(name = "subscription", nullable = false)
     private Boolean subscription = false;
+    @Column(name = "sub_date")
+    private Date subDate;
     @Column(name = "wallet", nullable = false)
     private Double wallet = (double) 0;
 
@@ -38,6 +42,7 @@ public class User implements UserDetails {
         this.password = password;
         this.roleName = roleName;
         this.subscription = subscription;
+        if(subscription) this.subDate = Date.valueOf(LocalDate.now());;
         this.wallet = wallet;
     }
 

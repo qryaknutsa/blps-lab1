@@ -25,7 +25,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.*;
 public class FileController {
     private final FileService fileService;
 
-    //    @GetMapping("/all-by-user/{username}")
     @RequestMapping(method = GET, value = {"/all-by-user", "/all-by-user/{username}"})
     public ResponseEntity<?> getAllFiles(@PathVariable @Nullable String username) {
         try {
@@ -53,11 +52,11 @@ public class FileController {
             User loggedUser = getLoggedUser();
             if (username == null) {
                 fileService.upload(loggedUser.getUsername(), filePath.getFilePath());
-                return ResponseEntity.ok().body("Файл загружен");
+                return ResponseEntity.ok().body("Файл загружается");
             } else {
                 if (loggedUser.getRoleName() == ADMIN) {
                     fileService.upload(username, filePath.getFilePath());
-                    return ResponseEntity.ok().body("Файл загружен");
+                    return ResponseEntity.ok().body("Файл загружается");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
         } catch (UserNotFoundException | InterruptedException e) {
@@ -101,11 +100,11 @@ public class FileController {
             User loggedUser = getLoggedUser();
             if (username == null) {
                 fileService.deleteFile(loggedUser.getUsername(), title);
-                return ResponseEntity.ok().body("Файл удален");
+                return ResponseEntity.ok().body("Файл удаляется");
             } else {
                 if (loggedUser.getRoleName() == ADMIN) {
                     fileService.deleteFile(username, title);
-                    return ResponseEntity.ok().body("Файл загружен");
+                    return ResponseEntity.ok().body("Файл удаляется");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
         } catch (UserNotFoundException  e) {

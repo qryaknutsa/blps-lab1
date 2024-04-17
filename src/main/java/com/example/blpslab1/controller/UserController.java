@@ -133,7 +133,7 @@ public class UserController {
                     return ResponseEntity.ok().body("Подписка на аккаунте " + username + " успешно оформлена");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException |
+        } catch (UserNotFoundException | OutOfBalanceException |
                  SubAlreadyExistsException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
@@ -152,7 +152,7 @@ public class UserController {
                     return ResponseEntity.ok().body("Подписка на аккаунте " + username + " успешно отменена");
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException |
+        } catch (UserNotFoundException | OutOfBalanceException |
                  SubAlreadyExistsException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
@@ -173,7 +173,7 @@ public class UserController {
                     return ResponseEntity.ok().body("Кошелёк успешно пополнился в размере " + wallet.getSum() + " на счету " + username);
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
+        } catch (UserNotFoundException | OutOfBalanceException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
@@ -191,7 +191,7 @@ public class UserController {
                     return ResponseEntity.ok().body("Деньги в размере " + wallet.getSum() + " успешно снялись со счёта " + username);
                 } else return ResponseEntity.status(403).body("Нет доступа");
             }
-        } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
+        } catch (UserNotFoundException | OutOfBalanceException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());
         }
     }
