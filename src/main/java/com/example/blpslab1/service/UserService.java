@@ -1,5 +1,6 @@
 package com.example.blpslab1.service;
 
+import bitronix.tm.BitronixTransactionManager;
 import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@EnableTransactionManagement
 public class UserService implements UserDetailsService {
     public static double subscription_price = 15;
     public static double subscriptionDurationInDays = 1;
