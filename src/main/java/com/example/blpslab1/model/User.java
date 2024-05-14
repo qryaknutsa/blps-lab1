@@ -1,6 +1,6 @@
 package com.example.blpslab1.model;
 
-import com.example.blpslab1.model.subModel.Role;
+import com.example.blpslab1.subModel.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

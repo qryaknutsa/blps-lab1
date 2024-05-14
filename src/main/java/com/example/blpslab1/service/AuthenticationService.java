@@ -3,7 +3,7 @@ package com.example.blpslab1.service;
 import com.example.blpslab1.dto.AuthUserDTO;
 import com.example.blpslab1.config.SecurityConfig;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.model.subModel.Role;
+import com.example.blpslab1.subModel.Role;
 import com.example.blpslab1.repo.UserRepo;
 
 

@@ -1,4 +1,4 @@
-package com.example.blpslab1.model.subModel;
+package com.example.blpslab1.subModel;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

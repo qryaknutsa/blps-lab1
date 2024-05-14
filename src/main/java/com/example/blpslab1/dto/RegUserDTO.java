@@ -1,6 +1,6 @@
 package com.example.blpslab1.dto;
 
-import com.example.blpslab1.model.subModel.Role;
+import com.example.blpslab1.subModel.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

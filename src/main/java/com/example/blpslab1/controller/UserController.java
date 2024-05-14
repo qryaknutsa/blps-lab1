@@ -1,15 +1,26 @@
 package com.example.blpslab1.controller;
 
+import com.example.blpslab1.config.JackRabbitRepositoryBuilder;
 import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
+import com.example.blpslab1.model.RabbitNode;
 import com.example.blpslab1.model.User;
-import com.example.blpslab1.model.subModel.Wallet;
+import com.example.blpslab1.service.FileService;
+import com.example.blpslab1.service.OwnershipService;
+import com.example.blpslab1.subModel.FileType;
+import com.example.blpslab1.subModel.Wallet;
 import com.example.blpslab1.service.UserService;
 
+import javax.jcr.Node;
+import javax.jcr.Repository;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.transaction.SystemException;
 
+import com.example.blpslab1.utils.JackRabbitUtils;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,19 +28,44 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.example.blpslab1.model.subModel.Role.ADMIN;
+import static com.example.blpslab1.subModel.Role.ADMIN;
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 @RequestMapping("/api/user")
-@AllArgsConstructor
 public class UserController {
+
+    Repository repo;
+    @Autowired
     private final UserService userService;
+    @Autowired
+    private final FileService fileService;
+    @Autowired
+    private final OwnershipService ownershipService;
+
+
+    public UserController(FileService fileService, UserService userService, OwnershipService ownershipService) throws RepositoryException {
+        this.fileService = fileService;
+        this.userService = userService;
+        this.ownershipService = ownershipService;
+        repo = JackRabbitRepositoryBuilder.getRepo("localhost", 27017);
+    }
+
+
 
     @PostMapping("/create")
-    public ResponseEntity<?> createUser(@RequestBody RegUserDTO user) {
+    public ResponseEntity<?> createUser(@RequestBody RegUserDTO user) throws RepositoryException {
         try {
+            Session session = JackRabbitUtils.getSession(repo);
             userService.saveUser(user);
+
+            String realRoot = ownershipService.getRealRoot();
+
+            RabbitNode folder = new RabbitNode(realRoot, user.getUsername(), "", "");
+            String fileId = fileService.createFolderNode(session, folder).getIdentifier();
+
+            ownershipService.addRecord(user.getUsername(), fileId, FileType.ROOT, "ROOT");
+
             return ResponseEntity.ok().body("Пользователь успешно создан");
         } catch (UserAlreadyExistsException e) {
             return ResponseEntity.internalServerError().body("Ошибка: " + e.getMessage());

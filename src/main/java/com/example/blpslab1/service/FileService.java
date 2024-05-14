@@ -1,81 +1,219 @@
 package com.example.blpslab1.service;
 
-import com.example.blpslab1.exceptions.*;
-import com.example.blpslab1.model.StoredFile;
-import com.example.blpslab1.model.User;
-import com.example.blpslab1.repo.FileRepo;
-import com.example.blpslab1.repo.UserRepo;
+import com.example.blpslab1.model.FileResponse;
+import com.example.blpslab1.model.Ownership;
+import com.example.blpslab1.model.RabbitNode;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import javax.jcr.*;
+import javax.jcr.version.Version;
+import javax.jcr.version.VersionHistory;
+import javax.jcr.version.VersionIterator;
+import javax.jcr.version.VersionManager;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.lang.Thread.sleep;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
-    private final FileRepo fileRepo;
-    private final UserRepo userRepo;
 
+    Logger logger = LoggerFactory.getLogger(FileService.class);
 
-    public List<String> getAllFilesName() {
-        return fileRepo.findAll().stream()
-                .map(StoredFile::getTitle)
-                .collect(Collectors.toList());
-    }
+    @Transactional
+    public Node createNode(Session session, RabbitNode input, MultipartFile uploadFile) {
+        Node node = null;
+        File file = new File(Objects.requireNonNull(uploadFile.getOriginalFilename()));
 
-
-    //UserNotFoundException
-    public List<String> getAllFilesNameByUsername(String username) {
-        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        return fileRepo.findAllByUsername(username).stream()
-                .map(StoredFile::getTitle)
-                .collect(Collectors.toList());
-
-    }
-
-    //FileAlreadyExistsException
-    //UserNotFoundException
-    public void upload(String username, String filePath) throws IOException, InterruptedException {
-        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        Path path = Paths.get(filePath);
-        String fileName = path.getFileName().toString();
-        String data = Files.readString(path);
         try {
-            fileRepo.findStoredFileByTitleAndUsername(fileName, username).orElseThrow(FileNotFoundException::new);
-            throw new FileAlreadyExistsException("Файл с таким именем уже существует");
-        } catch (FileNotFoundException e) {
-            StoredFile storedFile = new StoredFile(fileName, data, username);
-            fileRepo.save(storedFile);
-            if (!user.getSubscription()) sleep(5000);
+            Node parentNode = session.getNodeByIdentifier(input.getParentId());
+            if (parentNode != null && parentNode.hasNode(file.getName())) {
+                logger.error(file.getName() + " node already exists!");
+                return editNode(session, input, uploadFile);
+            } else {
+                try {
+                    node = parentNode.addNode(file.getName(), "nt:file");
+                    node.addMixin("mix:versionable");
+                    node.addMixin("mix:referenceable");
+
+                    Node content = node.addNode("jcr:content", "nt:resource");
+
+                    InputStream inputStream = uploadFile.getInputStream();
+                    Binary binary = session.getValueFactory().createBinary(inputStream);
+
+                    content.setProperty("jcr:data", binary);
+                    content.setProperty("jcr:mimeType", input.getMimeType());
+
+                    Date now = new Date();
+                    now.toInstant().toString();
+                    content.setProperty("jcr:lastModified", now.toInstant().toString());
+
+                    inputStream.close();
+                    session.save();
+
+                    VersionManager vm = session.getWorkspace().getVersionManager();
+                    vm.checkin(node.getPath());
+
+                    logger.info("File saved!");
+                } catch (Exception e) {
+                    logger.error("Exception caught!");
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught!");
+            e.printStackTrace();
+        }
+        return node;
+    }
+
+    @Transactional
+    public boolean deleteNode(Session session, RabbitNode input) {
+        try {
+            Node node = session.getNodeByIdentifier(input.getFileId());
+            if (node != null) {
+                node.remove();
+                session.save();
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught!");
+            e.printStackTrace();
         }
 
+        return false;
+    }
 
+    public List<String> getVersionHistory(Session session, RabbitNode input) {
+        List<String> versions = new ArrayList<>();
+        try {
+            VersionManager vm = session.getWorkspace().getVersionManager();
+
+            Node node = session.getNodeByIdentifier(input.getFileId());
+            String filePath = node.getPath();
+            if (session.itemExists(filePath)) {
+                VersionHistory versionHistory = vm.getVersionHistory(filePath);
+                Version currentVersion = vm.getBaseVersion(filePath);
+                logger.info("Current version: " + currentVersion.getName());
+
+                VersionIterator versionIterator = versionHistory.getAllVersions();
+                while (versionIterator.hasNext()) {
+                    versions.add(((Version) versionIterator.next()).getName());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught!");
+            e.printStackTrace();
+        }
+        return versions;
+    }
+
+    @Transactional
+    public Node editNode(Session session, RabbitNode input, MultipartFile uploadFile) {
+        File file = new File(uploadFile.getOriginalFilename());
+        Node returnNode = null;
+
+        try {
+            Node parentNode = session.getNodeByIdentifier(input.getParentId());
+            if (parentNode != null && parentNode.hasNode(file.getName())) {
+                VersionManager vm = session.getWorkspace().getVersionManager();
+
+                Node fileNode = parentNode.getNode(file.getName());
+                vm.checkout(fileNode.getPath());
+
+                Node content = fileNode.getNode("jcr:content");
+
+                InputStream is = uploadFile.getInputStream();
+                Binary binary = session.getValueFactory().createBinary(is);
+                content.setProperty("jcr:data", binary);
+
+                session.save();
+                is.close();
+
+                vm.checkin(fileNode.getPath());
+                returnNode = fileNode;
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught");
+            e.printStackTrace();
+        }
+
+        return returnNode;
     }
 
 
-    //FileAlreadyExistException
-    //UserNotFoundException
-    public StoredFile getStoredFile(String username, String title) {
-        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        return fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
+    @Transactional
+    public Node createFolderNode(Session session, RabbitNode input) {
+        Node node = null;
+        Node parentNode = null;
 
+        try {
+            parentNode = session.getNodeByIdentifier(input.getParentId());
+            if (session.nodeExists(parentNode.getPath())) {
+                if (!parentNode.hasNode(input.getFileName())) {
+                    node = parentNode.addNode(input.getFileName(), "nt:folder");
+                    node.addMixin("mix:referenceable");
+                    session.save();
+                    System.out.println("Folder created: " + input.getFileName());
+                }
+            } else {
+                logger.error("Node already exists!");
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught!");
+            e.printStackTrace();
+        }
+
+        return node;
     }
 
-    //FileAlreadyExistException
-    //UserNotFoundException
-    public void deleteFile(String username, String title) {
-        userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        StoredFile storedFile = fileRepo.findStoredFileByTitleAndUsername(title, username).orElseThrow(FileNotFoundException::new);
-        fileRepo.delete(storedFile);
+    public FileResponse getNode(Session session, String versionId, RabbitNode input) {
+        FileResponse response = new FileResponse();
 
+        try {
+            Node file = session.getNodeByIdentifier(input.getFileId());
+            if (file != null) {
+                VersionManager vm = session.getWorkspace().getVersionManager();
+                VersionHistory history = vm.getVersionHistory(file.getPath());
+                for (VersionIterator it = history.getAllVersions(); it.hasNext(); ) {
+                    Version version = (Version) it.next();
+                    if (versionId.equals(version.getName())) {
+                        file = version.getFrozenNode();
+                        break;
+                    }
+                }
+
+                logger.info("Node retrieved: " + file.getPath());
+
+                Node fileContent = file.getNode("jcr:content");
+                Binary bin = fileContent.getProperty("jcr:data").getBinary();
+                InputStream stream = bin.getStream();
+                byte[] bytes = IOUtils.toByteArray(stream);
+                bin.dispose();
+                stream.close();
+
+                response.setBytes(bytes);
+                //  response.setContentType(fileContent.getProperty("jcr:mimeType").getString());
+                response.setContentType(input.getMimeType());
+                return response;
+
+            } else {
+                logger.error("Node does not exist!");
+            }
+
+        } catch (Exception e) {
+            logger.error("Exception caught!");
+            e.printStackTrace();
+        }
+        return response;
     }
-
 
 }

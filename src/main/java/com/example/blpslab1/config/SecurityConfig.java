@@ -17,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import static com.example.blpslab1.model.subModel.Role.ADMIN;
+import static com.example.blpslab1.subModel.Role.ADMIN;
 
 @Configuration
 @EnableWebSecurity
@@ -27,7 +27,6 @@ public class SecurityConfig {
 
     private final UserService userDetailService;
 
-    private final LogoutHandler logoutHandler;
 
 
     @Bean
