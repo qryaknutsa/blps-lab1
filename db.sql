@@ -1,4 +1,4 @@
-CREATE TABLE if not exists cloud_user
+CREATE TABLE if not exists cloud_user_copy
 (
     id           SERIAL PRIMARY KEY not null,
     username     VARCHAR(32)        not null unique,
@@ -9,12 +9,12 @@ CREATE TABLE if not exists cloud_user
 );
 
 
-ALTER TABLE cloud_user ADD CONSTRAINT c UNIQUE (username);
-ALTER TABLE ownership ADD COLUMN type VARCHAR(32);
-ALTER TABLE ownership ADD COLUMN filename VARCHAR(32);
+-- ALTER TABLE cloud_user ADD CONSTRAINT c UNIQUE (username);
+-- ALTER TABLE ownership ADD COLUMN type VARCHAR(32);
+-- ALTER TABLE ownership ADD COLUMN filename VARCHAR(32);
 
 
-CREATE TABLE if not exists ownership (
+CREATE TABLE if not exists ownership_copy (
     id           SERIAL PRIMARY KEY not null,
     user_login VARCHAR(32) REFERENCES cloud_user(username),
     file_id text,
@@ -22,13 +22,13 @@ CREATE TABLE if not exists ownership (
     filename VARCHAR(32)
 );
 
-CREATE TABLE if not exists stored_file
-(
-    id       SERIAL PRIMARY KEY not null,
-    title    VARCHAR(32)        not null,
-    data     text               not null,
-    username VARCHAR(32)        not null
-);
+-- CREATE TABLE if not exists stored_file
+-- (
+--     id       SERIAL PRIMARY KEY not null,
+--     title    VARCHAR(32)        not null,
+--     data     text               not null,
+--     username VARCHAR(32)        not null
+-- );
 
 
 

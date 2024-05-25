@@ -28,7 +28,9 @@ dependencies {
 
 	annotationProcessor 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-jta-bitronix:2.4.13'
-	compileOnly 'javax:javaee-api:8.0.1'
+//	compileOnly 'javax:javaee-api:8.0.1'
+// https://mvnrepository.com/artifact/jakarta.platform/jakarta.jakartaee-api
+	compileOnly 'jakarta.platform:jakarta.jakartaee-api:11.0.0-M2'
 
 	implementation 'org.springframework.boot:spring-boot-starter-security:3.2.3'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -44,6 +46,11 @@ dependencies {
 	implementation 'org.mongodb:mongodb-driver-core:5.1.0'
 	implementation 'org.mongodb:bson:5.1.0'
 	implementation 'org.mongodb:mongodb-driver-sync:5.1.0'
+
+	implementation 'org.springframework.boot:spring-boot-starter-activemq:3.2.4'
+
+// https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-client
+	implementation 'org.glassfish.jersey.core:jersey-client:3.1.6'
 
 
 }

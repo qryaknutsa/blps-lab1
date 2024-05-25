@@ -15,9 +15,9 @@ import javax.jcr.Node;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.transaction.SystemException;
 
 import com.example.blpslab1.utils.JackRabbitUtils;
+import jakarta.transaction.SystemException;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -20,7 +20,7 @@ public class JackRabbitRepositoryBuilder {
         try {
             String uri = "mongodb://" + host + ":" + port;
             DocumentNodeStore ns = new MongoDocumentNodeStoreBuilder()
-                    .setMongoDB(uri, "blps", 0).build();
+                    .setMongoDB(uri, "blps_copy", 0).build();
             repo = new Jcr(new Oak(ns)).createRepository();
         } catch (Exception e) {
             logger.error("Exception caught: " + e.getLocalizedMessage());

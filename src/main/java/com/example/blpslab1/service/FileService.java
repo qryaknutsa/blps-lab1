@@ -1,12 +1,23 @@
 package com.example.blpslab1.service;
 
+import com.example.blpslab1.config.JackRabbitRepositoryBuilder;
+import com.example.blpslab1.dto.MessageNode;
+import com.example.blpslab1.dto.MessageRequest;
+import com.example.blpslab1.dto.MessageResponse;
+import com.example.blpslab1.exceptions.UserNotFoundException;
 import com.example.blpslab1.model.FileResponse;
-import com.example.blpslab1.model.Ownership;
 import com.example.blpslab1.model.RabbitNode;
-import lombok.RequiredArgsConstructor;
+
+import com.example.blpslab1.utils.JackRabbitUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,15 +27,29 @@ import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
 import javax.jcr.version.VersionManager;
+import jakarta.ws.rs.NotFoundException;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+
+import static com.example.blpslab1.subModel.FileType.*;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
+@Component
+@EnableJms
 public class FileService {
+
+    private final JmsTemplate jmsTemplate;
+    private final OwnershipService ownershipService;
+    private final UserService userService;
+
+
+    @Autowired
+    public FileService(JmsTemplate jmsTemplate, OwnershipService ownershipService, UserService userService) {
+        this.jmsTemplate = jmsTemplate;
+        this.ownershipService = ownershipService;
+        this.userService = userService;
+    }
 
     Logger logger = LoggerFactory.getLogger(FileService.class);
 
@@ -214,6 +239,112 @@ public class FileService {
             e.printStackTrace();
         }
         return response;
+    }
+
+
+    @JmsListener(destination = "CopyDir-request")
+    @Transactional
+    public void pasteDir(MessageRequest request) {
+        MessageResponse response = new MessageResponse();
+
+        String username = request.getUsername();
+        String targetDir = request.getTargetDir();
+        ArrayList<MessageNode> list = request.getList();
+
+        Repository repo = JackRabbitRepositoryBuilder.getRepo("localhost", 27017);
+
+
+        try {
+            userService.getUser(username);
+            ownershipService.getRecord(username, targetDir);
+
+            Session session = JackRabbitUtils.getSession(repo);
+
+            assert session != null;
+            setDir(session, targetDir, list, username);
+
+            JackRabbitUtils.cleanUp(session);
+            response.setMessage("Папка скопирована");
+        } catch (UserNotFoundException e) {
+            response.setMessage("Такого пользователя нет.");
+        } catch (NotFoundException e) {
+            response.setMessage("У пользователя нет доступа к этой директории.");
+        } catch (Exception e) {
+            response.setMessage("Что то пошло не так ;( " + e.getMessage());
+            System.out.println(e.getMessage());
+        }
+
+        jmsTemplate.convertAndSend("CopyDir-response", response);
+
+    }
+
+
+    int megaIt = 1;
+
+    @Transactional
+    public void setDir(Session session, String targetDir, ArrayList<MessageNode> list, String username) {
+        try {
+            Node targetParent = session.getNodeByIdentifier(targetDir);
+            Node targetFolder = targetParent.addNode(list.getFirst().getName(), "nt:folder");
+            targetFolder.addMixin("mix:referenceable");
+
+            ownershipService.addRecord(username, targetFolder.getIdentifier(), FOLDER, targetFolder.getName());
+
+            for (; megaIt < list.size(); megaIt++) {
+                MessageNode node = list.get(megaIt);
+                if (node.getFileType() == FOLDER) {
+                    megaIt++;
+                    setDir(session, node.getIdentifier(), list, username);
+                } else if (node.getFileType() == FILE) {
+                    Node file = targetFolder.addNode(node.getName(), "nt:file");
+                    file.addMixin("mix:versionable");
+                    file.addMixin("mix:referenceable");
+                    ownershipService.addRecord(username, file.getIdentifier(), FILE, file.getName());
+                    Node content = file.addNode("jcr:content", "nt:resource");
+                    content.setProperty("jcr:data", convertBinary(node.getData()));
+                    Date now = new Date();
+                    content.setProperty("jcr:lastModified", now.toInstant().toString());
+                }
+            }
+            session.save();
+            System.out.println("Folder copied");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+
+    public Binary convertBinary(org.bson.types.Binary bsonBinary) {
+        byte[] data = bsonBinary.getData();
+
+        return new Binary() {
+            @Override
+            public InputStream getStream() throws RepositoryException {
+                return new ByteArrayInputStream(data);
+            }
+
+            @Override
+            public int read(byte[] b, long position) throws IOException, RepositoryException {
+                // Метод read должен быть реализован в соответствии с вашими потребностями
+                // Он должен читать данные из массива байтов и возвращать количество прочитанных байтов
+                // position - позиция, с которой нужно начать чтение
+                // b - массив байтов, в который нужно записать данные
+                // В данном примере просто копируем все данные из массива data в массив b
+                System.arraycopy(data, (int) position, b, 0, data.length - (int) position);
+                return data.length - (int) position;
+            }
+
+            @Override
+            public long getSize() throws RepositoryException {
+                return data.length;
+            }
+
+            @Override
+            public void dispose() {
+                // Метод dispose может быть реализован по вашему усмотрению
+                // Он может освобождать ресурсы, связанные с данными
+            }
+        };
     }
 
 }

@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "cloud_user")
+@Table(name = "cloud_user_copy")
 public class User implements UserDetails {
     @Id
     @Column(name = "id", nullable = false)

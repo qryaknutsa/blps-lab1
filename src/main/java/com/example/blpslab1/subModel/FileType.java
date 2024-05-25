@@ -1,6 +1,8 @@
 package com.example.blpslab1.subModel;
 
-public enum FileType {
+import java.io.Serializable;
+
+public enum FileType implements Serializable {
     REAL_ROOT,
     ROOT,
     FOLDER,

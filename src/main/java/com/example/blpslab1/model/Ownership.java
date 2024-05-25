@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ownership")
+@Table(name = "ownership_copy")
 public class Ownership {
     @Id
     @Column(name = "id", nullable = false)

@@ -4,10 +4,12 @@ import com.example.blpslab1.exceptions.UserNotFoundException;
 import com.example.blpslab1.model.Ownership;
 import com.example.blpslab1.repo.OwnershipRepo;
 import com.example.blpslab1.subModel.FileType;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
 
 import java.util.Collection;
 import java.util.Optional;
@@ -26,7 +28,7 @@ public class OwnershipService {
 
     //TODO: add exception
     public Ownership getRecord(String userLogin, String fileId){
-        return repo.findOwnershipByUserLoginAndFileId(userLogin, fileId).orElseThrow();
+        return repo.findOwnershipByUserLoginAndFileId(userLogin, fileId).orElseThrow(NotFoundException::new);
     }
 
     public Collection<Ownership> getAllRecords(String userLogin){
