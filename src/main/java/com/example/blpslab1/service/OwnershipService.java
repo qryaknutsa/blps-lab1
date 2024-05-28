@@ -19,8 +19,8 @@ public class OwnershipService {
     private final OwnershipRepo repo;
 
 
-    public void addRecord(String userLogin, String fileId, FileType type, String filename){
-        repo.save(new Ownership(userLogin, fileId, type, filename));
+    public Ownership addRecord(String userLogin, String fileId, FileType type, String filename){
+        return repo.save(new Ownership(userLogin, fileId, type, filename));
     }
 
 

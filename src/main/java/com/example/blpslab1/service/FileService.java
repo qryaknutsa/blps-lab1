@@ -1,12 +1,20 @@
 package com.example.blpslab1.service;
 
+import com.example.blpslab1.dto.MessageNode;
+import com.example.blpslab1.dto.MessageRequest;
+import com.example.blpslab1.dto.MessageResponse;
 import com.example.blpslab1.model.FileResponse;
-import com.example.blpslab1.model.Ownership;
 import com.example.blpslab1.model.RabbitNode;
-import lombok.RequiredArgsConstructor;
+import com.example.blpslab1.subModel.FileType;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,14 +25,19 @@ import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
 import javax.jcr.version.VersionManager;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
+@Component
+@EnableJms
 public class FileService {
+    private final JmsTemplate jmsTemplate;
+
+    @Autowired
+    public FileService(JmsTemplate jmsTemplate) {
+        this.jmsTemplate = jmsTemplate;
+    }
 
     Logger logger = LoggerFactory.getLogger(FileService.class);
 
@@ -201,14 +214,12 @@ public class FileService {
                 stream.close();
 
                 response.setBytes(bytes);
-                //  response.setContentType(fileContent.getProperty("jcr:mimeType").getString());
                 response.setContentType(input.getMimeType());
                 return response;
 
             } else {
                 logger.error("Node does not exist!");
             }
-
         } catch (Exception e) {
             logger.error("Exception caught!");
             e.printStackTrace();
@@ -216,4 +227,91 @@ public class FileService {
         return response;
     }
 
+
+    public void copyDir(Session session, String username, String sourceDir, String targetParentId) {
+        ArrayList<MessageNode> list = new ArrayList<>();
+        getDir(session, sourceDir, list);
+        MessageRequest messageRequest = new MessageRequest(username, targetParentId, list);
+        jmsTemplate.convertAndSend("CopyDir-request", messageRequest);
+    }
+
+    @JmsListener(destination = "CopyDir-response")
+    public void pasteDir(MessageResponse response) {
+        System.out.println(response.getMessage());
+    }
+
+    private void getDir(Session session, String sourceDir, ArrayList<MessageNode> list) {
+        try {
+            Node sourceFolder = session.getNodeByIdentifier(sourceDir);
+            if (sourceFolder.isNodeType("nt:folder")) {
+                MessageNode folderNode = new MessageNode(sourceFolder.getIdentifier(), FileType.FOLDER, sourceFolder.getName());
+                list.add(folderNode);
+                NodeIterator nodes = sourceFolder.getNodes();
+                while (nodes.hasNext()) {
+                    Node sourceNode = nodes.nextNode();
+                    if (sourceNode.isNodeType("nt:file")) {
+                        Node sourceContent = sourceNode.getNode("jcr:content");
+                        MessageNode fileNode = new MessageNode(sourceNode.getIdentifier(), FileType.FILE, sourceNode.getName(), convertBinary(sourceContent.getProperty("jcr:data").getBinary()));
+                        list.add(fileNode);
+                    } else if (sourceNode.isNodeType("nt:folder")) {
+                        getDir(session, sourceNode.getIdentifier(), list);
+                    }
+                }
+            } else {
+                logger.error("Source node is not a folder.");
+            }
+        } catch (RepositoryException e) {
+            logger.error("Exception caught! " + e.getMessage());
+        }
+    }
+
+
+    public org.bson.types.Binary convertBinary(Binary jcrBinary) {
+        try {
+            InputStream stream = jcrBinary.getStream();
+            byte[] data = new byte[(int) jcrBinary.getSize()];
+            int bytesRead = stream.read(data);
+
+            if (bytesRead != data.length) {
+                // Обработка случаев, когда не все данные были прочитаны
+            }
+
+            return new org.bson.types.Binary(data);
+        } catch (IOException | RepositoryException e) {
+            // Обработка исключений, если не удалось прочитать данные из javax.jcr.Binary
+            return null;
+        }
+    }
+    public Binary convertBinary(org.bson.types.Binary bsonBinary) {
+        byte[] data = bsonBinary.getData();
+
+        return new Binary() {
+            @Override
+            public InputStream getStream() throws RepositoryException {
+                return new ByteArrayInputStream(data);
+            }
+
+            @Override
+            public int read(byte[] b, long position) throws IOException, RepositoryException {
+                // Метод read должен быть реализован в соответствии с вашими потребностями
+                // Он должен читать данные из массива байтов и возвращать количество прочитанных байтов
+                // position - позиция, с которой нужно начать чтение
+                // b - массив байтов, в который нужно записать данные
+                // В данном примере просто копируем все данные из массива data в массив b
+                System.arraycopy(data, (int) position, b, 0, data.length - (int) position);
+                return data.length - (int) position;
+            }
+
+            @Override
+            public long getSize() throws RepositoryException {
+                return data.length;
+            }
+
+            @Override
+            public void dispose() {
+                // Метод dispose может быть реализован по вашему усмотрению
+                // Он может освобождать ресурсы, связанные с данными
+            }
+        };
+    }
 }

@@ -11,7 +11,9 @@ import com.example.blpslab1.repo.*;
 
 
 import javax.transaction.*;
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,13 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
-    public static double subscription_price = 1500;
+    public static double subscription_price = 15;
+    public static double subscriptionDurationInDays = 1;
+
     private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
 
@@ -86,88 +93,53 @@ public class UserService implements UserDetailsService {
 
     //UserNotFoundException
     //OutOfBalanceException
-    //TransactionFailedException
     //SubAlreadyExistsException
-    public void buySub(String username) throws SystemException, javax.transaction.SystemException {
-        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
-        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        try {
-            if (user.getSubscription()) {
-                throw new SubAlreadyExistsException("Подписка уже куплена");
-            } else {
-                if (user.getWallet() < subscription_price)
-                    throw new OutOfBalanceException("Не хватает денег");
-                else {
-                    tm.begin();
-                    user.setWallet(user.getWallet() - subscription_price);
-                    user.setSubscription(true);
-                    userRepo.save(user);
-                    tm.commit();
-                }
-            }
-        }catch (Exception e){
-            tm.rollback();
-            throw new TransactionFailedException("Подписка не оформлена");
-        }
-//        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
-//            tm.rollback();
-//            throw new TransactionFailedException("Подписка не оформлена");
-//        } catch (RollbackException | javax.transaction.NotSupportedException e) {
-//            tm.rollback();
-//            throw new TransactionFailedException("Подписка не оформлена, откат не произошел");
-//        }
-    }
-
-    //UserNotFoundException
-    //OutOfBalanceException
-    //TransactionFailedException
-    public void cancelSub(String username) throws SystemException {
-        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
-        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        try {
-            tm.begin();
-            user.setSubscription(false);
-            userRepo.save(user);
-            tm.commit();
-        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
-            tm.rollback();
-            throw new TransactionFailedException("Подписка не отменена");
-        } catch (RollbackException e) {
-            throw new TransactionFailedException("Подписка не куплена, откат не произошел");
-        }
-    }
-
-    //UserNotFoundException
-    //OutOfBalanceException
-    //TransactionFailedException
-    public void putMoney(String username, Double sum) throws SystemException {
-        BitronixTransactionManager tm = TransactionManagerServices.getTransactionManager();
-        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        try {
-            tm.begin();
-            user.setWallet(user.getWallet() + sum);
-            userRepo.save(user);
-            tm.commit();
-        } catch (HeuristicRollbackException | HeuristicMixedException | NotSupportedException e) {
-            tm.rollback();
-            throw new TransactionFailedException("Деньги нне вышло положить на счёт");
-        } catch (RollbackException e) {
-            throw new TransactionFailedException("Деньги не вышло положить на счёт, откат не произошел");
-        }
-    }
-
-    //UserNotFoundException
-    //OutOfBalanceException
-    //TransactionFailedException
-
     @Transactional
-    public void withdrawMoney(String username, Double sum) throws SystemException {
+    public void buySub(String username) {
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        if (user.getSubscription()) {
+            throw new SubAlreadyExistsException("Подписка уже куплена");
+        } else {
+            if (user.getWallet() < subscription_price)
+                throw new OutOfBalanceException("Не хватает денег");
+            else {
+                user.setWallet(user.getWallet() - subscription_price);
+                user.setSubscription(true);
+                userRepo.save(user);
+            }
+        }
+
+    }
+
+    //UserNotFoundException
+    //OutOfBalanceException
+    @Transactional
+    public void cancelSub(String username) {
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        user.setSubscription(false);
+        userRepo.save(user);
+    }
+
+    //UserNotFoundException
+    //OutOfBalanceException
+    @Transactional
+    public void putMoney(String username, Double sum) {
+        User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
+        user.setWallet(user.getWallet() + sum);
+        userRepo.save(user);
+
+    }
+
+    //UserNotFoundException
+    //OutOfBalanceException
+    @Transactional
+    public void withdrawMoney(String username, Double sum) {
         User user = userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         try {
             user.setWallet(user.getWallet() - sum);
             userRepo.save(user);
             method();
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new TransactionFailedException("Деньги не снялись со счёта");
         }
     }
@@ -182,6 +154,35 @@ public class UserService implements UserDetailsService {
             return userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
         } catch (UserNotFoundException e) {
             throw new UsernameNotFoundException("User not found");
+        }
+    }
+
+    //        @Scheduled(cron = "*/2 * * * * *")
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void renew_sub() {
+        List<User> all_users = getAllUsers();
+        Date currentDate = Date.valueOf(LocalDate.now());
+
+        for (User user : all_users) {
+            if (user.getSubscription()) {
+                Date startTrial = user.getSubDate();
+                long diffInMillies = Math.abs(currentDate.getTime() - startTrial.getTime());
+                long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS);
+                if (diffInDays >= subscriptionDurationInDays) {
+                    try {
+                        withdrawMoney(user.getUsername(), subscription_price);
+                        user.setSubDate(currentDate); // Обновляем дату подписки
+                        userRepo.save(user); // Метод для обновления данных пользователя в базе
+                        System.out.println("Подписка обновлена, деньги сняты со счёта.");
+                    } catch (OutOfBalanceException e) {
+                        user.setSubDate(null);
+                        user.setSubscription(false);
+                        userRepo.save(user);
+                        System.out.println("Не удалось обновить подписку, не хватило средств на кошельке.");
+                    }
+                }
+            }
         }
     }
 }

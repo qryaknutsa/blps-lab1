@@ -11,7 +11,9 @@ CREATE TABLE if not exists cloud_user
 
 ALTER TABLE cloud_user ADD CONSTRAINT c UNIQUE (username);
 ALTER TABLE ownership ADD COLUMN type VARCHAR(32);
-ALTER TABLE ownership ADD COLUMN filename VARCHAR(32);
+
+ALTER TABLE ownership ADD COLUMN type VARCHAR(32);
+ALTER TABLE cloud_user ADD COLUMN sub_date DATE;
 
 
 CREATE TABLE if not exists ownership (
