@@ -35,8 +35,10 @@ public class PutMoneyDelegate implements JavaDelegate {
 
         try {
             userService.putMoney(username, Double.valueOf(change));
+            delegateExecution.setVariable("result", "Успех");
         } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
             System.out.println("Ошибка: " + e);
+            delegateExecution.setVariable("result", "put money exception" +  e.getMessage());
         }
     }
 }

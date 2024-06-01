@@ -92,7 +92,7 @@ public class UploadFileDelegate implements JavaDelegate {
 
             session.getNodeByIdentifier(input.getParentId());
             JackRabbitUtils.cleanUp(session);
-
+            delegateExecution.setVariable("result", "Успех");
         } catch (Exception e) {
             if (ownershipService.isExist(ownership.getUserLogin(), ownership.getFileId()))
                 ownershipService.deleteRecord(ownership.getUserLogin(), ownership.getFileId());
@@ -103,6 +103,7 @@ public class UploadFileDelegate implements JavaDelegate {
             if (response != null) fileService.deleteNode(session, input);
 
             JackRabbitUtils.cleanUp(session);
+            delegateExecution.setVariable("result", "upload file exception" +  e.getMessage());
         }
     }
 }

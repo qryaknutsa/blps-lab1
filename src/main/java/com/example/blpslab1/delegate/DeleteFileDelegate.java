@@ -73,6 +73,7 @@ public class DeleteFileDelegate implements JavaDelegate {
             fileService.deleteNode(session, input);
             ownershipService.deleteRecord(login, input.getFileId());
             JackRabbitUtils.cleanUp(session);
+            delegateExecution.setVariable("result", "Успех");
         } catch (Exception e) {
             System.out.println(identifier);
             input.setFileId(identifier);
@@ -115,6 +116,7 @@ public class DeleteFileDelegate implements JavaDelegate {
             JackRabbitUtils.cleanUp(session);
 
             ownershipService.addRecord(login, id, FILE, input.getFileName());
+            delegateExecution.setVariable("result", "delete file exception" +  e.getMessage());
         }
     }
 }

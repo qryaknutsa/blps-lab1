@@ -41,6 +41,7 @@ public class CancelSubDelegate implements JavaDelegate {
             userService.cancelSub(username);
         } catch (UserNotFoundException | TransactionFailedException |
                  SubAlreadyExistsException e) {
+            delegateExecution.setVariable("result", "cancel sub exception" +  e.getMessage());
             System.out.println("cancel sub exception"+ e);
         }
 

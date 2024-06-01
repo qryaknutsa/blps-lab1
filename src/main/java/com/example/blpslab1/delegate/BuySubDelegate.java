@@ -33,8 +33,11 @@ public class BuySubDelegate implements JavaDelegate {
         System.out.println("buySub called!");
         try {
             userService.buySub(username);
+            delegateExecution.setVariable("result", "Успех");
         } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException |
                  SubAlreadyExistsException e) {
+
+            delegateExecution.setVariable("result", "buy sub exception" +  e.getMessage());
             System.out.println("buy sub exception" + e);
 
         }

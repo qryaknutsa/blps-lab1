@@ -30,8 +30,10 @@ public class WithdrawMoneyDelegate implements JavaDelegate {
 
         try {
             userService.withdrawMoney(username, Double.valueOf(change));
+            delegateExecution.setVariable("result", "Успех");
         } catch (UserNotFoundException | OutOfBalanceException | TransactionFailedException e) {
             System.out.println("Ошибка: " + e);
+            delegateExecution.setVariable("result", "withdraw money exception" + e.getMessage());
         }
     }
 }

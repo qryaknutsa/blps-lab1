@@ -80,6 +80,7 @@ public class CreateDirDelegate implements JavaDelegate {
 
             System.out.println(identifier);
             JackRabbitUtils.cleanUp(session);
+            delegateExecution.setVariable("result", "Успех");
         } catch (Exception e) {
             if (ownershipService.isExist(ownership.getUserLogin(), ownership.getFileId()))
                 ownershipService.deleteRecord(ownership.getUserLogin(), ownership.getFileId());
@@ -89,6 +90,8 @@ public class CreateDirDelegate implements JavaDelegate {
             if (response != null) fileService.deleteNode(session, input);
 
             JackRabbitUtils.cleanUp(session);
+
+            delegateExecution.setVariable("result", "create dir exception" + e.getMessage());
         }
     }
 }
