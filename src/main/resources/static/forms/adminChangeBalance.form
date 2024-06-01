@@ -1,0 +1,35 @@
+{
+  "components": [
+    {
+      "label": "На сколько изменить счёт",
+      "type": "number",
+      "layout": {
+        "row": "Row_0skt9wn",
+        "columns": null
+      },
+      "id": "Field_0ownqec",
+      "key": "balance_change",
+      "defaultValue": 0,
+      "increment": "100"
+    },
+    {
+      "label": "Имя пользователя",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1cqev0f",
+        "columns": null
+      },
+      "id": "Field_1k7dk7s",
+      "key": "username"
+    }
+  ],
+  "type": "default",
+  "id": "adminChangeBalance",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

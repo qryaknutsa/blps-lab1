@@ -4,7 +4,8 @@
     <bpmn:participant id="Participant_06mcevq" name="Proccess File" processRef="Process_file" />
     <bpmn:participant id="Participant_1n4exlk" name="Proccess Subscription" processRef="Process_sub" />
     <bpmn:participant id="Participant_1uy1qen" name="Proccess balance" processRef="Process_balance" />
-    <bpmn:participant id="Participant_06pyktx" name="Renew sub" processRef="Process_09az56a" />
+    <bpmn:participant id="Participant_06pyktx" name="Renew sub" processRef="Process_renew" />
+    <bpmn:participant id="Participant_1bgc93c" name="Регистрация" processRef="Process_signup" />
   </bpmn:collaboration>
   <bpmn:process id="Process_file" isExecutable="true">
     <bpmn:laneSet id="LaneSet_0h577jc">
@@ -705,7 +706,7 @@
       <bpmn:outgoing>Flow_0ycggvb</bpmn:outgoing>
     </bpmn:userTask>
   </bpmn:process>
-  <bpmn:process id="Process_09az56a" isExecutable="false">
+  <bpmn:process id="Process_renew" isExecutable="false">
     <bpmn:startEvent id="Event_0wdtpas">
       <bpmn:outgoing>Flow_1wbahbl</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_03uywh2">
@@ -721,6 +722,45 @@
       <bpmn:incoming>Flow_1wbahbl</bpmn:incoming>
       <bpmn:outgoing>Flow_03k90ep</bpmn:outgoing>
     </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:process id="Process_signup" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_1scbjos">
+      <bpmn:lane id="Lane_02hlujx" name="Server">
+        <bpmn:flowNodeRef>Activity_1aeuned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0rki8gh</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_01dhxcq" name="User">
+        <bpmn:flowNodeRef>Event_0kgr5c2</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1dzxn69</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_0kgr5c2">
+      <bpmn:outgoing>Flow_10l9576</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_10l9576" sourceRef="Event_0kgr5c2" targetRef="Activity_1dzxn69" />
+    <bpmn:userTask id="Activity_1dzxn69" name="Sign up form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="login" label="Введите ваш логин" type="string">
+            <camunda:validation>
+              <camunda:constraint />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="password" label="Введите пароль" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10l9576</bpmn:incoming>
+      <bpmn:outgoing>Flow_021fiiq</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_021fiiq" sourceRef="Activity_1dzxn69" targetRef="Activity_1aeuned" />
+    <bpmn:serviceTask id="Activity_1aeuned" name="Sign up" camunda:delegateExpression="${signupDelegate}">
+      <bpmn:incoming>Flow_021fiiq</bpmn:incoming>
+      <bpmn:outgoing>Flow_14wqkvq</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_0rki8gh">
+      <bpmn:incoming>Flow_14wqkvq</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_14wqkvq" sourceRef="Activity_1aeuned" targetRef="Event_0rki8gh" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_00ristl">
@@ -1416,6 +1456,46 @@
       <bpmndi:BPMNEdge id="Flow_03k90ep_di" bpmnElement="Flow_03k90ep">
         <di:waypoint x="820" y="2550" />
         <di:waypoint x="972" y="2550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_1bgc93c_di" bpmnElement="Participant_1bgc93c" isHorizontal="true">
+        <dc:Bounds x="330" y="2740" width="600" height="370" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_02hlujx_di" bpmnElement="Lane_02hlujx" isHorizontal="true">
+        <dc:Bounds x="360" y="2940" width="570" height="170" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_01dhxcq_di" bpmnElement="Lane_01dhxcq" isHorizontal="true">
+        <dc:Bounds x="360" y="2740" width="570" height="200" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0kgr5c2_di" bpmnElement="Event_0kgr5c2">
+        <dc:Bounds x="432" y="2832" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1vb5ret_di" bpmnElement="Activity_1dzxn69">
+        <dc:Bounds x="520" y="2810" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12zrzvk_di" bpmnElement="Activity_1aeuned">
+        <dc:Bounds x="620" y="2970" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0rki8gh_di" bpmnElement="Event_0rki8gh">
+        <dc:Bounds x="772" y="2992" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_10l9576_di" bpmnElement="Flow_10l9576">
+        <di:waypoint x="468" y="2850" />
+        <di:waypoint x="520" y="2850" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_021fiiq_di" bpmnElement="Flow_021fiiq">
+        <di:waypoint x="570" y="2890" />
+        <di:waypoint x="570" y="2930" />
+        <di:waypoint x="670" y="2930" />
+        <di:waypoint x="670" y="2970" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14wqkvq_di" bpmnElement="Flow_14wqkvq">
+        <di:waypoint x="720" y="3010" />
+        <di:waypoint x="772" y="3010" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

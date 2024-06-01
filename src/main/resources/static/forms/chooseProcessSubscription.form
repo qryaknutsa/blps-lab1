@@ -1,0 +1,43 @@
+{
+  "components": [
+    {
+      "values": [
+        {
+          "label": "Приобрести подписку",
+          "value": "buy_sub"
+        },
+        {
+          "label": "Отменить подписку",
+          "value": "cancel_sub"
+        }
+      ],
+      "label": "Выбрать процесс",
+      "type": "select",
+      "layout": {
+        "row": "Row_1xvu9le",
+        "columns": null
+      },
+      "id": "Field_0s5zd27",
+      "key": "select_sub"
+    },
+    {
+      "action": "reset",
+      "label": "Сбросить",
+      "type": "button",
+      "layout": {
+        "row": "Row_0mlm9p3",
+        "columns": null
+      },
+      "id": "Field_0d6m1yp"
+    }
+  ],
+  "type": "default",
+  "id": "chooseProcessSubscription",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

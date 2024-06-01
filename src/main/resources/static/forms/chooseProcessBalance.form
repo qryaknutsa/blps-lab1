@@ -1,0 +1,43 @@
+{
+  "components": [
+    {
+      "values": [
+        {
+          "label": "Положить деньги",
+          "value": "put_money"
+        },
+        {
+          "label": "Снять деньги",
+          "value": "withdraw_money"
+        }
+      ],
+      "label": "Выбрать процесс",
+      "type": "select",
+      "layout": {
+        "row": "Row_1lox5sp",
+        "columns": null
+      },
+      "id": "Field_0wigfb7",
+      "key": "select_balance"
+    },
+    {
+      "action": "reset",
+      "label": "Сбросить",
+      "type": "button",
+      "layout": {
+        "row": "Row_1xxg030",
+        "columns": null
+      },
+      "id": "Field_03ryj2g"
+    }
+  ],
+  "type": "default",
+  "id": "chooseProcessBalance",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

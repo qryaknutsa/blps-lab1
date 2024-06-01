@@ -1,0 +1,25 @@
+{
+  "components": [
+    {
+      "label": "На сколько изменить счёт",
+      "type": "number",
+      "layout": {
+        "row": "Row_0r1gs80",
+        "columns": null
+      },
+      "id": "Field_07iopzm",
+      "key": "balance_change",
+      "defaultValue": 0,
+      "increment": "100"
+    }
+  ],
+  "type": "default",
+  "id": "changeBalance",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}
