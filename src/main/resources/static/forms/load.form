@@ -1,0 +1,33 @@
+{
+  "components": [
+    {
+      "label": "ID родителя",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1uymxqh",
+        "columns": null
+      },
+      "id": "Field_14gi789",
+      "key": "parent_id"
+    },
+    {
+      "label": "Путь к файлу",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0keielt",
+        "columns": null
+      },
+      "id": "Field_1m46cw1",
+      "key": "path"
+    }
+  ],
+  "type": "default",
+  "id": "load",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

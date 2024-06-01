@@ -1,0 +1,60 @@
+{
+  "components": [
+    {
+      "values": [
+        {
+          "label": "Посмотреть файл",
+          "value": "file_get"
+        },
+        {
+          "label": "Посмотреть список всех файлов",
+          "value": "file_get_all"
+        },
+        {
+          "label": "Загрузить файл",
+          "value": "file_upload"
+        },
+        {
+          "label": "Удалить файл",
+          "value": "file_delete"
+        },
+        {
+          "label": "Скопировать директорию",
+          "value": "file_copy_dir"
+        },
+        {
+          "label": "Создать директорию",
+          "value": "file_create_dir"
+        }
+      ],
+      "label": "Выбрите процесс",
+      "type": "select",
+      "layout": {
+        "row": "Row_07vpqmi",
+        "columns": null
+      },
+      "id": "Field_16nseoz",
+      "key": "select_file",
+      "description": "файлы"
+    },
+    {
+      "action": "reset",
+      "label": "Сбросить",
+      "type": "button",
+      "layout": {
+        "row": "Row_1ag46vk",
+        "columns": 8
+      },
+      "id": "Field_111002j"
+    }
+  ],
+  "type": "default",
+  "id": "chooseProcess",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

@@ -1,0 +1,23 @@
+{
+  "components": [
+    {
+      "label": "файлы",
+      "type": "textarea",
+      "layout": {
+        "row": "Row_0dcvv3s",
+        "columns": null
+      },
+      "id": "Field_0upvyqy",
+      "key": "allFiles"
+    }
+  ],
+  "type": "default",
+  "id": "allFilesForm",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.23.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.21.0",
+  "schemaVersion": 16
+}

@@ -1,5 +1,6 @@
 package com.example.blpslab1.service;
 
+
 import com.example.blpslab1.dto.MessageNode;
 import com.example.blpslab1.dto.MessageRequest;
 import com.example.blpslab1.dto.MessageResponse;
@@ -17,15 +18,20 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.jcr.*;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
 import javax.jcr.version.VersionManager;
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -42,34 +48,33 @@ public class FileService {
     Logger logger = LoggerFactory.getLogger(FileService.class);
 
     @Transactional
-    public Node createNode(Session session, RabbitNode input, MultipartFile uploadFile) {
+    public Node createNode(Session session, RabbitNode input, InputStream uploadFile, String filename) {
         Node node = null;
-        File file = new File(Objects.requireNonNull(uploadFile.getOriginalFilename()));
+        File file = new File(Objects.requireNonNull(filename));
 
         try {
             Node parentNode = session.getNodeByIdentifier(input.getParentId());
             if (parentNode != null && parentNode.hasNode(file.getName())) {
                 logger.error(file.getName() + " node already exists!");
-                return editNode(session, input, uploadFile);
+                return editNode(session, input, uploadFile, filename);
             } else {
                 try {
-                    node = parentNode.addNode(file.getName(), "nt:file");
+                    node = parentNode.addNode(filename, "nt:file");
                     node.addMixin("mix:versionable");
                     node.addMixin("mix:referenceable");
 
                     Node content = node.addNode("jcr:content", "nt:resource");
 
-                    InputStream inputStream = uploadFile.getInputStream();
-                    Binary binary = session.getValueFactory().createBinary(inputStream);
+                    Binary binary = session.getValueFactory().createBinary(uploadFile);
 
                     content.setProperty("jcr:data", binary);
-                    content.setProperty("jcr:mimeType", input.getMimeType());
+                    content.setProperty("jcr:mimeType", "text/plain");
 
                     Date now = new Date();
                     now.toInstant().toString();
                     content.setProperty("jcr:lastModified", now.toInstant().toString());
 
-                    inputStream.close();
+                    uploadFile.close();
                     session.save();
 
                     VersionManager vm = session.getWorkspace().getVersionManager();
@@ -130,8 +135,8 @@ public class FileService {
     }
 
     @Transactional
-    public Node editNode(Session session, RabbitNode input, MultipartFile uploadFile) {
-        File file = new File(uploadFile.getOriginalFilename());
+    public Node editNode(Session session, RabbitNode input, InputStream uploadFile, String filename) {
+        File file = new File(filename);
         Node returnNode = null;
 
         try {
@@ -144,12 +149,11 @@ public class FileService {
 
                 Node content = fileNode.getNode("jcr:content");
 
-                InputStream is = uploadFile.getInputStream();
-                Binary binary = session.getValueFactory().createBinary(is);
+                Binary binary = session.getValueFactory().createBinary(uploadFile);
                 content.setProperty("jcr:data", binary);
 
                 session.save();
-                is.close();
+                uploadFile.close();
 
                 vm.checkin(fileNode.getPath());
                 returnNode = fileNode;

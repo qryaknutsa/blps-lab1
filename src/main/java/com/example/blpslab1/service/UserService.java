@@ -1,26 +1,14 @@
 package com.example.blpslab1.service;
 
-import bitronix.tm.TransactionManagerServices;
-import bitronix.tm.BitronixTransactionManager;
-
 import com.example.blpslab1.dto.RegUserDTO;
 import com.example.blpslab1.exceptions.*;
 import com.example.blpslab1.model.User;
+import com.example.blpslab1.repo.UserRepo;
 import com.example.blpslab1.subModel.Role;
-import com.example.blpslab1.repo.*;
-
-
-import javax.transaction.*;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -30,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
     public static double subscription_price = 15;
     public static double subscriptionDurationInDays = 1;
 
-    private final PasswordEncoder passwordEncoder;
+    //    private final PasswordEncoder passwordEncoder;
     private final UserRepo userRepo;
 
 
@@ -51,7 +39,9 @@ public class UserService implements UserDetailsService {
 
     //UserAlreadyExistException
     public void saveUser(RegUserDTO userDTO) {
-        User user = new User(userDTO.getUsername(), passwordEncoder.encode(userDTO.getPassword()), userDTO.getRole());
+//        User user = new User(userDTO.getUsername(), passwordEncoder.encode(userDTO.getPassword()), userDTO.getRole());
+        User user = new User(userDTO.getUsername(), userDTO.getPassword(), userDTO.getRole());
+
         try {
             userRepo.findUserByUsername(userDTO.getUsername()).orElseThrow(UserNotFoundException::new);
             throw new UserAlreadyExistsException("User с таким username уже существует, user не сохранен");
@@ -73,7 +63,9 @@ public class UserService implements UserDetailsService {
     //UserNotFoundException
     public void changePassword(User user) {
         User user1 = userRepo.findUserByUsername(user.getUsername()).orElseThrow(UserNotFoundException::new);
-        user1.setPassword(passwordEncoder.encode(user.getPassword()));
+//        user1.setPassword(passwordEncoder.encode(user.getPassword()));
+        user1.setPassword(user.getPassword());
+
         userRepo.save(user1);
 
     }
@@ -148,14 +140,6 @@ public class UserService implements UserDetailsService {
         throw new RuntimeException();
     }
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        try {
-            return userRepo.findUserByUsername(username).orElseThrow(UserNotFoundException::new);
-        } catch (UserNotFoundException e) {
-            throw new UsernameNotFoundException("User not found");
-        }
-    }
 
     //        @Scheduled(cron = "*/2 * * * * *")
     @Scheduled(cron = "0 0 0 * * ?")

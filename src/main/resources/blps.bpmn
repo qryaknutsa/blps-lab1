@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0j9d9j0" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.23.0" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.21.0">
+  <bpmn:collaboration id="Collaboration_00ristl">
+    <bpmn:participant id="Participant_06mcevq" name="Proccess File" processRef="Process_file" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_file" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_0h577jc">
+      <bpmn:lane id="Lane_1ikl2ig" name="Admin">
+        <bpmn:flowNodeRef>Activity_0056m64</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1ky2ib4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0n10n21</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_117zwad</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_06dvx6f</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0fm85qm</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0qpdttx</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1ha4jw7" name="Server">
+        <bpmn:flowNodeRef>Gateway_1iemjp3</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1sgry2z</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_13eyrui</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0s0alvj</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_10ego3s</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0ed1vvd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1hubdt1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_13vo4ph</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1060ol4</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1rcpge0</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_136hcke</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0hyl8w5</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_09qqfve" name="User">
+        <bpmn:flowNodeRef>Login</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_07l0spj</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_1rs2j57</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_1l5wajt</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_08fojmu</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_13xrc0h</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0n1z3py</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0f7czcc</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0t2gybi</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_05k2kxo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1p2nuuo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0hsreat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_02zgikd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0k2lc9z</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:userTask id="Login" name="Login">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="login" label="Введите логин" type="string" />
+          <camunda:formField id="password" label="Введите пароль" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0vnqcem</bpmn:incoming>
+      <bpmn:incoming>Flow_0mdp4zm</bpmn:incoming>
+      <bpmn:incoming>Flow_1d92th3</bpmn:incoming>
+      <bpmn:outgoing>Flow_1vhmaiv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_07l0spj" default="Flow_0mdp4zm">
+      <bpmn:incoming>Flow_1vhmaiv</bpmn:incoming>
+      <bpmn:outgoing>Flow_0mdp4zm</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1pglta1</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:startEvent id="Event_1rs2j57">
+      <bpmn:outgoing>Flow_1d92th3</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_1iemjp3" default="Flow_1271sc7">
+      <bpmn:incoming>Flow_0ihupl9</bpmn:incoming>
+      <bpmn:outgoing>Flow_11rx0tq</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1jiyd6a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0vnqcem</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1271sc7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_11rx0tq" sourceRef="Gateway_1iemjp3" targetRef="Activity_05k2kxo">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${user_exists &amp;&amp; !is_admin}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1jiyd6a" sourceRef="Gateway_1iemjp3" targetRef="Activity_0056m64">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${user_exists &amp;&amp; is_admin}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1ofoc3z" sourceRef="Gateway_1p2nuuo" targetRef="Activity_08fojmu">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_upload'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0vnqcem" sourceRef="Gateway_1iemjp3" targetRef="Login">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!user_exists}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0mdp4zm" sourceRef="Gateway_07l0spj" targetRef="Login" />
+    <bpmn:sequenceFlow id="Flow_1d92th3" sourceRef="Event_1rs2j57" targetRef="Login" />
+    <bpmn:sequenceFlow id="Flow_1vhmaiv" sourceRef="Login" targetRef="Gateway_07l0spj" />
+    <bpmn:sequenceFlow id="Flow_1pglta1" sourceRef="Gateway_07l0spj" targetRef="Activity_0s0alvj">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${login!="" &amp;&amp; password!=""}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1271sc7" sourceRef="Gateway_1iemjp3" targetRef="Activity_0s0alvj" />
+    <bpmn:sequenceFlow id="Flow_0ihupl9" sourceRef="Activity_0s0alvj" targetRef="Gateway_1iemjp3" />
+    <bpmn:sequenceFlow id="Flow_0c68w99" sourceRef="Activity_13xrc0h" targetRef="Event_0n1z3py" />
+    <bpmn:sequenceFlow id="Flow_053mo8z" sourceRef="Activity_08fojmu" targetRef="Activity_10ego3s" />
+    <bpmn:sequenceFlow id="Flow_1pw7tkl" sourceRef="Activity_0t2gybi" targetRef="Activity_1hubdt1" />
+    <bpmn:sequenceFlow id="Flow_1ynpxnb" sourceRef="Gateway_1p2nuuo" targetRef="Activity_1l5wajt">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_copy_dir'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="Activity_1l5wajt" name="copy dir form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="src_copy_dir" label="ID источника" type="string" />
+          <camunda:formField id="dst_copy_dir" label="ID адресата" type="string" />
+          <camunda:formField id="username_copy_dir" label="Юзернейм получателя" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ynpxnb</bpmn:incoming>
+      <bpmn:outgoing>Flow_1tu3kzo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_03zcs22" sourceRef="Gateway_1p2nuuo" targetRef="Activity_13vo4ph">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_get_all'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_10epmeo" sourceRef="Activity_13vo4ph" targetRef="Activity_13xrc0h" />
+    <bpmn:sequenceFlow id="Flow_1hkgmqj" sourceRef="Activity_10ego3s" targetRef="Event_1rcpge0" />
+    <bpmn:sequenceFlow id="Flow_1vu0806" sourceRef="Activity_1hubdt1" targetRef="Activity_0f7czcc" />
+    <bpmn:sequenceFlow id="Flow_0clqy8c" sourceRef="Activity_0f7czcc" targetRef="Event_02zgikd" />
+    <bpmn:userTask id="Activity_08fojmu" name="upload file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id" label="ID родителя" type="string" />
+          <camunda:formField id="path" label="Путь к файлу" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1ofoc3z</bpmn:incoming>
+      <bpmn:outgoing>Flow_053mo8z</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_13xrc0h" name="see files" camunda:formKey="camunda-forms:/forms/allFilesForm.form">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="allFiles">${allFiles}</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10epmeo</bpmn:incoming>
+      <bpmn:outgoing>Flow_0c68w99</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_0n1z3py">
+      <bpmn:incoming>Flow_0c68w99</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_0f7czcc" name="see file" camunda:formKey="camunda-forms:/forms/getFileForm.form">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="file">${file}</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1vu0806</bpmn:incoming>
+      <bpmn:outgoing>Flow_0clqy8c</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0t2gybi" name="get file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_get" label="ID родителя" type="string" />
+          <camunda:formField id="filename_get" label="Имя файла" type="string" />
+          <camunda:formField id="id_file_get" label="ID файла" type="string" />
+          <camunda:formField id="mime_type_get" label="Mime type" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0hjgj59</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pw7tkl</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0g8y94b" sourceRef="Activity_0hsreat" targetRef="Activity_13eyrui" />
+    <bpmn:sequenceFlow id="Flow_0hxmycp" sourceRef="Activity_13eyrui" targetRef="Event_136hcke" />
+    <bpmn:sequenceFlow id="Flow_1tu3kzo" sourceRef="Activity_1l5wajt" targetRef="Activity_1sgry2z" />
+    <bpmn:serviceTask id="Activity_1sgry2z" name="copy dir" camunda:delegateExpression="${copyDirDelegate}">
+      <bpmn:incoming>Flow_1tu3kzo</bpmn:incoming>
+      <bpmn:incoming>Flow_0jwo3p3</bpmn:incoming>
+      <bpmn:outgoing>Flow_16jfrnf</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_13eyrui" name="create dir" camunda:delegateExpression="${createDirDelegate}">
+      <bpmn:incoming>Flow_0g8y94b</bpmn:incoming>
+      <bpmn:incoming>Flow_1qfamdr</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hxmycp</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_16jfrnf" sourceRef="Activity_1sgry2z" targetRef="Event_1060ol4" />
+    <bpmn:userTask id="Activity_05k2kxo" name="choose page" camunda:formKey="camunda-forms:/forms/chooseProcess.form">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:outputParameter name="select_file">${select_file}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_11rx0tq</bpmn:incoming>
+      <bpmn:incoming>Flow_1r9f29l</bpmn:incoming>
+      <bpmn:outgoing>Flow_02zmf4x</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Activity_0s0alvj" name="Find the user" camunda:delegateExpression="${userSearchDelegate}">
+      <bpmn:incoming>Flow_1pglta1</bpmn:incoming>
+      <bpmn:incoming>Flow_1271sc7</bpmn:incoming>
+      <bpmn:outgoing>Flow_0ihupl9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_0056m64" name="choose page" camunda:formKey="camunda-forms:/forms/chooseProcess.form">
+      <bpmn:incoming>Flow_1jiyd6a</bpmn:incoming>
+      <bpmn:incoming>Flow_0sh6taq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1jktt0s</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_02zmf4x" sourceRef="Activity_05k2kxo" targetRef="Gateway_1p2nuuo" />
+    <bpmn:sequenceFlow id="Flow_1r9f29l" sourceRef="Gateway_1p2nuuo" targetRef="Activity_05k2kxo" />
+    <bpmn:exclusiveGateway id="Gateway_1p2nuuo" default="Flow_1r9f29l">
+      <bpmn:incoming>Flow_02zmf4x</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ofoc3z</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1ynpxnb</bpmn:outgoing>
+      <bpmn:outgoing>Flow_03zcs22</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1r9f29l</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0hjgj59</bpmn:outgoing>
+      <bpmn:outgoing>Flow_18j97kb</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1yfrhgx</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0hjgj59" sourceRef="Gateway_1p2nuuo" targetRef="Activity_0t2gybi">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_get'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="Activity_0hsreat" name="create dir form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_create_folder" label="Введите id родителя" type="string" />
+          <camunda:formField id="foldername_create" label="Введите имя директории" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_18j97kb</bpmn:incoming>
+      <bpmn:outgoing>Flow_0g8y94b</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_18j97kb" sourceRef="Gateway_1p2nuuo" targetRef="Activity_0hsreat">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_create_dir'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1yfrhgx" sourceRef="Gateway_1p2nuuo" targetRef="Activity_0k2lc9z">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_delete'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_02zgikd">
+      <bpmn:incoming>Flow_0clqy8c</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Activity_10ego3s" name="upload file" camunda:delegateExpression="${uploadFileDelegate}">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_053mo8z</bpmn:incoming>
+      <bpmn:incoming>Flow_1oe0e7r</bpmn:incoming>
+      <bpmn:outgoing>Flow_1hkgmqj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0ed1vvd" name="delete file" camunda:delegateExpression="${deleteFileDelegate}">
+      <bpmn:incoming>Flow_12asx32</bpmn:incoming>
+      <bpmn:incoming>Flow_1joa1t0</bpmn:incoming>
+      <bpmn:outgoing>Flow_03d8rr5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_03d8rr5" sourceRef="Activity_0ed1vvd" targetRef="Event_0hyl8w5" />
+    <bpmn:serviceTask id="Activity_1hubdt1" name="get file" camunda:delegateExpression="${getFileDelegate}">
+      <bpmn:incoming>Flow_1pw7tkl</bpmn:incoming>
+      <bpmn:incoming>Flow_1ot76tb</bpmn:incoming>
+      <bpmn:outgoing>Flow_1vu0806</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_13vo4ph" name="get all files" camunda:delegateExpression="${getAllFilesDelegate}">
+      <bpmn:incoming>Flow_03zcs22</bpmn:incoming>
+      <bpmn:incoming>Flow_1fgttrm</bpmn:incoming>
+      <bpmn:outgoing>Flow_10epmeo</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_1ky2ib4" default="Flow_0sh6taq">
+      <bpmn:incoming>Flow_1jktt0s</bpmn:incoming>
+      <bpmn:outgoing>Flow_0sh6taq</bpmn:outgoing>
+      <bpmn:outgoing>Flow_03cntqd</bpmn:outgoing>
+      <bpmn:outgoing>Flow_06s3j2p</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ploova</bpmn:outgoing>
+      <bpmn:outgoing>Flow_04e9do4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_15hv45z</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1fgttrm</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1jktt0s" sourceRef="Activity_0056m64" targetRef="Gateway_1ky2ib4" />
+    <bpmn:sequenceFlow id="Flow_0sh6taq" sourceRef="Gateway_1ky2ib4" targetRef="Activity_0056m64" />
+    <bpmn:userTask id="Activity_0n10n21" name="copy dir form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_copy_dir" label="ID родительской директории" type="string" />
+          <camunda:formField id="src_dir_id" label="ID целевой директории" type="string" />
+          <camunda:formField id="username_copy_dir" label="Юзернейм получателя" type="string" />
+          <camunda:formField id="admin_create_dir_username" label="Логин юезра" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_03cntqd</bpmn:incoming>
+      <bpmn:outgoing>Flow_0jwo3p3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_03cntqd" sourceRef="Gateway_1ky2ib4" targetRef="Activity_0n10n21">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_copy_dir'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0jwo3p3" sourceRef="Activity_0n10n21" targetRef="Activity_1sgry2z" />
+    <bpmn:userTask id="Activity_117zwad" name="get file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_get" label="ID родителя" type="string" />
+          <camunda:formField id="filename_get" label="Имя файла" type="string" />
+          <camunda:formField id="id_file_get" label="ID файла" type="string" />
+          <camunda:formField id="mime_type_get" label="Mime type" type="string" />
+          <camunda:formField id="admin_get_file_username" label="Логин юезра" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_06s3j2p</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ot76tb</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0k2lc9z" name="delete file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_delete" label="ID родителя" type="string" />
+          <camunda:formField id="filename_delete" label="Имя файла" type="string" />
+          <camunda:formField id="id_file_delete" label="ID файла" type="string" />
+          <camunda:formField id="mime_type_delete" label="Mime type" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1yfrhgx</bpmn:incoming>
+      <bpmn:outgoing>Flow_12asx32</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_06s3j2p" sourceRef="Gateway_1ky2ib4" targetRef="Activity_117zwad">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_get'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1ot76tb" sourceRef="Activity_117zwad" targetRef="Activity_1hubdt1" />
+    <bpmn:endEvent id="Event_1060ol4">
+      <bpmn:incoming>Flow_16jfrnf</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_12asx32" sourceRef="Activity_0k2lc9z" targetRef="Activity_0ed1vvd" />
+    <bpmn:userTask id="Activity_06dvx6f" name="create dir form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_create_folder" label="Введите id родителя" type="string" />
+          <camunda:formField id="foldername_create" label="Введите имя директории" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_15hv45z</bpmn:incoming>
+      <bpmn:outgoing>Flow_1qfamdr</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0fm85qm" name="upload file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id" label="ID родителя" type="string" />
+          <camunda:formField id="path" label="Путь к файлу" type="string" />
+          <camunda:formField id="admin_upload_file_username" label="Логин юзера" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0ploova</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oe0e7r</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0qpdttx" name="delete file form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="parent_id_delete" label="ID родителя" type="string" />
+          <camunda:formField id="filename_delete" label="Имя файла" type="string" />
+          <camunda:formField id="id_file_delete" label="ID файла" type="string" />
+          <camunda:formField id="mime_type_delete" label="Mime type" type="string" />
+          <camunda:formField id="admin_delete_file_username" label="Логин юезра" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_04e9do4</bpmn:incoming>
+      <bpmn:outgoing>Flow_1joa1t0</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0ploova" sourceRef="Gateway_1ky2ib4" targetRef="Activity_0fm85qm">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_upload'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_04e9do4" sourceRef="Gateway_1ky2ib4" targetRef="Activity_0qpdttx">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_delete'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_15hv45z" sourceRef="Gateway_1ky2ib4" targetRef="Activity_06dvx6f">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_create_dir'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1fgttrm" sourceRef="Gateway_1ky2ib4" targetRef="Activity_13vo4ph">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${select_file=='file_get_all'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1oe0e7r" sourceRef="Activity_0fm85qm" targetRef="Activity_10ego3s" />
+    <bpmn:endEvent id="Event_1rcpge0">
+      <bpmn:incoming>Flow_1hkgmqj</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1qfamdr" sourceRef="Activity_06dvx6f" targetRef="Activity_13eyrui" />
+    <bpmn:endEvent id="Event_136hcke">
+      <bpmn:incoming>Flow_0hxmycp</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="Event_0hyl8w5">
+      <bpmn:incoming>Flow_03d8rr5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1joa1t0" sourceRef="Activity_0qpdttx" targetRef="Activity_0ed1vvd" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_00ristl">
+      <bpmndi:BPMNShape id="BPMNShape_0t47enr" bpmnElement="Participant_06mcevq" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="2790" height="1260" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_07efk97" bpmnElement="Lane_09qqfve" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="2760" height="490" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0zodurv" bpmnElement="Lane_1ha4jw7" isHorizontal="true">
+        <dc:Bounds x="190" y="570" width="2760" height="290" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1k6bvoy" bpmnElement="Lane_1ikl2ig" isHorizontal="true">
+        <dc:Bounds x="190" y="860" width="2760" height="480" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0xjmpln" bpmnElement="Login">
+        <dc:Bounds x="380" y="340" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_15k9vlp" bpmnElement="Gateway_07l0spj" isMarkerVisible="true">
+        <dc:Bounds x="545" y="355" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1kjj34o" bpmnElement="Event_1rs2j57">
+        <dc:Bounds x="252" y="362" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1py2ztb" bpmnElement="Gateway_1iemjp3" isMarkerVisible="true">
+        <dc:Bounds x="715" y="705" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1c55yvd" bpmnElement="Activity_1l5wajt">
+        <dc:Bounds x="1010" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1xaktg6" bpmnElement="Activity_08fojmu">
+        <dc:Bounds x="1150" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0na68ux_di" bpmnElement="Activity_13xrc0h">
+        <dc:Bounds x="1710" y="450" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0hu4fzt" bpmnElement="Event_0n1z3py">
+        <dc:Bounds x="1742" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0lp9bnw_di" bpmnElement="Activity_0f7czcc">
+        <dc:Bounds x="1580" y="450" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_14qdifw" bpmnElement="Activity_0t2gybi">
+        <dc:Bounds x="1390" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0r8nl1d_di" bpmnElement="Activity_1sgry2z">
+        <dc:Bounds x="1010" y="600" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1lpf4bv_di" bpmnElement="Activity_13eyrui">
+        <dc:Bounds x="860" y="600" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0frn373" bpmnElement="Activity_05k2kxo">
+        <dc:Bounds x="690" y="150" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0cfuby6" bpmnElement="Activity_0s0alvj">
+        <dc:Bounds x="520" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1cbudjq" bpmnElement="Activity_0056m64">
+        <dc:Bounds x="690" y="970" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0vtarbp" bpmnElement="Gateway_1p2nuuo" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="165" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1emsms1" bpmnElement="Activity_0hsreat">
+        <dc:Bounds x="860" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_1emow5u" bpmnElement="Event_02zgikd">
+        <dc:Bounds x="1612" y="352" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1btevtp_di" bpmnElement="Activity_10ego3s">
+        <dc:Bounds x="1150" y="600" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1z0cuu2_di" bpmnElement="Activity_0ed1vvd">
+        <dc:Bounds x="1270" y="600" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1u6h62r_di" bpmnElement="Activity_1hubdt1">
+        <dc:Bounds x="1390" y="600" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1gqi8mg_di" bpmnElement="Activity_13vo4ph">
+        <dc:Bounds x="1510" y="600" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0uuu974" bpmnElement="Gateway_1ky2ib4" isMarkerVisible="true">
+        <dc:Bounds x="1225" y="1075" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0xgl770" bpmnElement="Activity_0n10n21">
+        <dc:Bounds x="1010" y="900" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0gcx7ml" bpmnElement="Activity_117zwad">
+        <dc:Bounds x="1390" y="900" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0heoobl" bpmnElement="Activity_0k2lc9z">
+        <dc:Bounds x="1270" y="470" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1060ol4_di" bpmnElement="Event_1060ol4">
+        <dc:Bounds x="992" y="722" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0j9af8q" bpmnElement="Activity_06dvx6f">
+        <dc:Bounds x="860" y="900" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0yn2x03" bpmnElement="Activity_0fm85qm">
+        <dc:Bounds x="1150" y="900" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0oaxofz" bpmnElement="Activity_0qpdttx">
+        <dc:Bounds x="1270" y="900" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rcpge0_di" bpmnElement="Event_1rcpge0">
+        <dc:Bounds x="1222" y="722" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_136hcke_di" bpmnElement="Event_136hcke">
+        <dc:Bounds x="852" y="722" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0hyl8w5_di" bpmnElement="Event_0hyl8w5">
+        <dc:Bounds x="1342" y="722" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="BPMNEdge_01j84qi" bpmnElement="Flow_11rx0tq">
+        <di:waypoint x="740" y="705" />
+        <di:waypoint x="740" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0ztjada" bpmnElement="Flow_1jiyd6a">
+        <di:waypoint x="740" y="755" />
+        <di:waypoint x="740" y="970" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0a5b23c" bpmnElement="Flow_1ynpxnb">
+        <di:waypoint x="1240" y="205" />
+        <di:waypoint x="1082" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_03u881c" bpmnElement="Flow_1ofoc3z">
+        <di:waypoint x="1247" y="212" />
+        <di:waypoint x="1209" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1hfet8k" bpmnElement="Flow_0vnqcem">
+        <di:waypoint x="715" y="730" />
+        <di:waypoint x="400" y="730" />
+        <di:waypoint x="400" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1937o3u" bpmnElement="Flow_0mdp4zm">
+        <di:waypoint x="553" y="388" />
+        <di:waypoint x="510" y="410" />
+        <di:waypoint x="480" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_1nmicz1" bpmnElement="Flow_1d92th3">
+        <di:waypoint x="288" y="380" />
+        <di:waypoint x="380" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0dgji26" bpmnElement="Flow_1vhmaiv">
+        <di:waypoint x="430" y="340" />
+        <di:waypoint x="430" y="320" />
+        <di:waypoint x="570" y="320" />
+        <di:waypoint x="570" y="355" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_10viikh" bpmnElement="Flow_1pglta1">
+        <di:waypoint x="570" y="405" />
+        <di:waypoint x="570" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_0svw6zv" bpmnElement="Flow_1271sc7">
+        <di:waypoint x="728" y="718" />
+        <di:waypoint x="680" y="670" />
+        <di:waypoint x="620" y="643" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="BPMNEdge_18aj0hm" bpmnElement="Flow_0ihupl9">
+        <di:waypoint x="620" y="640" />
+        <di:waypoint x="668" y="640" />
+        <di:waypoint x="668" y="710" />
+        <di:waypoint x="735" y="710" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c68w99_di" bpmnElement="Flow_0c68w99">
+        <di:waypoint x="1760" y="450" />
+        <di:waypoint x="1760" y="388" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_053mo8z_di" bpmnElement="Flow_053mo8z">
+        <di:waypoint x="1200" y="550" />
+        <di:waypoint x="1200" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pw7tkl_di" bpmnElement="Flow_1pw7tkl">
+        <di:waypoint x="1440" y="550" />
+        <di:waypoint x="1440" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03zcs22_di" bpmnElement="Flow_03zcs22">
+        <di:waypoint x="1263" y="202" />
+        <di:waypoint x="1480" y="400" />
+        <di:waypoint x="1556" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10epmeo_di" bpmnElement="Flow_10epmeo">
+        <di:waypoint x="1610" y="640" />
+        <di:waypoint x="1760" y="640" />
+        <di:waypoint x="1760" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hkgmqj_di" bpmnElement="Flow_1hkgmqj">
+        <di:waypoint x="1200" y="680" />
+        <di:waypoint x="1200" y="701" />
+        <di:waypoint x="1240" y="701" />
+        <di:waypoint x="1240" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vu0806_di" bpmnElement="Flow_1vu0806">
+        <di:waypoint x="1487" y="604" />
+        <di:waypoint x="1583" y="527" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0clqy8c_di" bpmnElement="Flow_0clqy8c">
+        <di:waypoint x="1630" y="450" />
+        <di:waypoint x="1630" y="388" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0g8y94b_di" bpmnElement="Flow_0g8y94b">
+        <di:waypoint x="910" y="550" />
+        <di:waypoint x="910" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hxmycp_di" bpmnElement="Flow_0hxmycp">
+        <di:waypoint x="910" y="680" />
+        <di:waypoint x="910" y="701" />
+        <di:waypoint x="870" y="701" />
+        <di:waypoint x="870" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1tu3kzo_di" bpmnElement="Flow_1tu3kzo">
+        <di:waypoint x="1060" y="550" />
+        <di:waypoint x="1060" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16jfrnf_di" bpmnElement="Flow_16jfrnf">
+        <di:waypoint x="1060" y="680" />
+        <di:waypoint x="1060" y="701" />
+        <di:waypoint x="1010" y="701" />
+        <di:waypoint x="1010" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_02zmf4x_di" bpmnElement="Flow_02zmf4x">
+        <di:waypoint x="790" y="190" />
+        <di:waypoint x="1225" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1r9f29l_di" bpmnElement="Flow_1r9f29l">
+        <di:waypoint x="1229" y="194" />
+        <di:waypoint x="890" y="260" />
+        <di:waypoint x="778" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hjgj59_di" bpmnElement="Flow_0hjgj59">
+        <di:waypoint x="1260" y="205" />
+        <di:waypoint x="1434" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18j97kb_di" bpmnElement="Flow_18j97kb">
+        <di:waypoint x="1236" y="201" />
+        <di:waypoint x="922" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1yfrhgx_di" bpmnElement="Flow_1yfrhgx">
+        <di:waypoint x="1255" y="210" />
+        <di:waypoint x="1320" y="470" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03d8rr5_di" bpmnElement="Flow_03d8rr5">
+        <di:waypoint x="1320" y="680" />
+        <di:waypoint x="1320" y="701" />
+        <di:waypoint x="1360" y="701" />
+        <di:waypoint x="1360" y="722" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jktt0s_di" bpmnElement="Flow_1jktt0s">
+        <di:waypoint x="790" y="1019" />
+        <di:waypoint x="1229" y="1096" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0sh6taq_di" bpmnElement="Flow_0sh6taq">
+        <di:waypoint x="1227" y="1102" />
+        <di:waypoint x="970" y="1120" />
+        <di:waypoint x="769" y="1050" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03cntqd_di" bpmnElement="Flow_03cntqd">
+        <di:waypoint x="1237" y="1088" />
+        <di:waypoint x="1107" y="976" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0jwo3p3_di" bpmnElement="Flow_0jwo3p3">
+        <di:waypoint x="1060" y="900" />
+        <di:waypoint x="1060" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06s3j2p_di" bpmnElement="Flow_06s3j2p">
+        <di:waypoint x="1265" y="1090" />
+        <di:waypoint x="1426" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ot76tb_di" bpmnElement="Flow_1ot76tb">
+        <di:waypoint x="1440" y="900" />
+        <di:waypoint x="1440" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12asx32_di" bpmnElement="Flow_12asx32">
+        <di:waypoint x="1320" y="550" />
+        <di:waypoint x="1320" y="600" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ploova_di" bpmnElement="Flow_0ploova">
+        <di:waypoint x="1244" y="1081" />
+        <di:waypoint x="1210" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_04e9do4_di" bpmnElement="Flow_04e9do4">
+        <di:waypoint x="1259" y="1084" />
+        <di:waypoint x="1315" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15hv45z_di" bpmnElement="Flow_15hv45z">
+        <di:waypoint x="1232" y="1093" />
+        <di:waypoint x="936" y="980" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1fgttrm_di" bpmnElement="Flow_1fgttrm">
+        <di:waypoint x="1270" y="1095" />
+        <di:waypoint x="1480" y="1040" />
+        <di:waypoint x="1560" y="920" />
+        <di:waypoint x="1560" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oe0e7r_di" bpmnElement="Flow_1oe0e7r">
+        <di:waypoint x="1200" y="900" />
+        <di:waypoint x="1200" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qfamdr_di" bpmnElement="Flow_1qfamdr">
+        <di:waypoint x="910" y="900" />
+        <di:waypoint x="910" y="680" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1joa1t0_di" bpmnElement="Flow_1joa1t0">
+        <di:waypoint x="1320" y="900" />
+        <di:waypoint x="1320" y="680" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

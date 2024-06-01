@@ -5,12 +5,9 @@ import com.example.blpslab1.model.Ownership;
 import com.example.blpslab1.repo.OwnershipRepo;
 import com.example.blpslab1.subModel.FileType;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
-import java.util.Optional;
 
 
 @Service

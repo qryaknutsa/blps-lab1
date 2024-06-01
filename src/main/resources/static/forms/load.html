@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма загрузки файла</title>
+</head>
+<body>
+<form id="fileForm" onsubmit="return false;">
+    <input type="file" id="fileInput" />
+    <button onclick="handleFileUpload()">Загрузить файл</button>
+</form>
+
+<script>
+    function handleFileUpload() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            downloadFile(event.target.result, file.name);
+        };
+
+        reader.readAsText(file);
+    }
+
+    function downloadFile(data, filename) {
+        const blob = new Blob([data], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename
+        document.body.appendChild(a);
+        a.click();
+
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+</script>
+</body>
+</html>
