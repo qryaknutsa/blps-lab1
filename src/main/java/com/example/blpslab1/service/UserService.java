@@ -130,7 +130,7 @@ public class UserService {
         try {
             user.setWallet(user.getWallet() - sum);
             userRepo.save(user);
-            method();
+//            method();
         } catch (Exception e) {
             throw new TransactionFailedException("Деньги не снялись со счёта");
         }
@@ -142,7 +142,7 @@ public class UserService {
 
 
     //        @Scheduled(cron = "*/2 * * * * *")
-    @Scheduled(cron = "0 0 0 * * ?")
+//    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void renew_sub() {
         List<User> all_users = getAllUsers();

@@ -1,6 +1,7 @@
 package com.example.blpslab1.delegate;
 
 import com.example.blpslab1.config.JackRabbitRepositoryBuilder;
+import com.example.blpslab1.exceptions.UserNotFoundException;
 import com.example.blpslab1.model.FileResponse;
 import com.example.blpslab1.model.Ownership;
 import com.example.blpslab1.model.RabbitNode;
@@ -27,6 +28,8 @@ import static com.example.blpslab1.subModel.FileType.FILE;
 
 @Component
 public class UploadFileDelegate implements JavaDelegate {
+    long defaultFileSize = 1024 * 1500;
+
     Repository repo;
 
     @Autowired
@@ -51,6 +54,8 @@ public class UploadFileDelegate implements JavaDelegate {
         String parent = (String) delegateExecution.getVariable("parent_id");
         String login = (String) delegateExecution.getVariable("login");
         String filePath = (String) delegateExecution.getVariable("path");
+        boolean isAdmin = (boolean) delegateExecution.getVariable("is_admin");
+        if (isAdmin) login = (String) delegateExecution.getVariable("admin_upload_file_username");
 
 
         Session session = JackRabbitUtils.getSession(repo);
@@ -74,10 +79,11 @@ public class UploadFileDelegate implements JavaDelegate {
                 return;
             }
 
-//            boolean sub = userRepo.findAll().stream().filter(u -> u.getUsername().equals(login)).findFirst().get().getSubscription();
-//            if (!sub && file.getSize() > defaultFileSize)
-//                return;
 
+            String finalLogin = login;
+            boolean sub = userRepo.findAll().stream().filter(u -> u.getUsername().equals(finalLogin)).findFirst().orElseThrow(UserNotFoundException::new).getSubscription();
+            if (!sub && initialFile.length() > defaultFileSize)
+                return;
 
             node = fileService.createNode(session, input, stream, initialFile.getName());
             identifier = node.getIdentifier();
